@@ -1,14 +1,12 @@
 <template>
-  <v-app>
+  <v-app :theme="theme">
     <v-main>
       <router-view />
     </v-main>
   </v-app>
 </template>
 
-<script setup>
-// Main App shell
-</script>
+<script setup></script>
 
 <style>
 /* Global styles */

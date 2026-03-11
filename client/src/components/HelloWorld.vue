@@ -25,15 +25,19 @@
 
       <!-- Colored Cards Showcase -->
       <v-col cols="12" md="6">
-        <v-card color="primary" theme="dark">
+        <v-card color="primary" variant="elevated">
           <v-card-title>Primary Card</v-card-title>
-          <v-card-text>This card uses the primary color (#1867C0)</v-card-text>
+          <v-card-text
+            >This card uses the <strong>Primary</strong> color from your active
+            theme.</v-card-text
+          >
         </v-card>
 
-        <v-card color="secondary" class="mt-4" theme="dark">
+        <v-card color="secondary" variant="elevated" class="mt-4">
           <v-card-title>Secondary Card</v-card-title>
           <v-card-text
-            >This card uses the secondary color (#48A9A6)</v-card-text
+            >This card uses the <strong>Secondary</strong> color from your
+            active theme.</v-card-text
           >
         </v-card>
       </v-col>
@@ -68,17 +72,15 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
 import { useTheme } from "vuetify";
 
-const theme = ref("customDarkTheme");
 const vuetifyTheme = useTheme();
 
 function toggleTheme() {
   vuetifyTheme.global.name.value =
-    vuetifyTheme.global.name.value === "customLightTheme"
-      ? "customDarkTheme"
-      : "customLightTheme";
+    vuetifyTheme.global.name.value === "testTheme"
+      ? "testDarkTheme"
+      : "testTheme";
 }
 </script>
 

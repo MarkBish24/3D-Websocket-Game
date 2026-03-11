@@ -4,7 +4,10 @@
   "description": "This is a websocket game with a tech stack of Vue, Express, Node, and Postgres SQL",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev"
   },
   "repository": {
     "type": "git",
@@ -17,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/MarkBish24/3D-Websocket-Game/issues"
   },
-  "homepage": "https://github.com/MarkBish24/3D-Websocket-Game#readme"
+  "homepage": "https://github.com/MarkBish24/3D-Websocket-Game#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

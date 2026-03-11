@@ -2,6 +2,6 @@
 import { ref } from "vue";
 </script>
 
-<template>Test</template>
+<template>Login</template>
 
 <style scoped></style>

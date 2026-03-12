@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HelloWorld from "../components/HelloWorld.vue";
 import {
   Login,
   Signup,
@@ -8,17 +7,18 @@ import {
   Profile,
   Friends,
   Settings,
+  DesignTest,
 } from "../pages/index.js";
 
 const routes = [
-  { path: "/", name: "Home", component: HelloWorld },
+  { path: "/", name: "Home", component: Dashboard },
   { path: "/login", name: "Login", component: Login },
   { path: "/signup", name: "Signup", component: Signup },
-  { path: "/dashboard", name: "Dashboard", component: Dashboard },
   { path: "/play", name: "Play", component: Play },
   { path: "/profile", name: "Profile", component: Profile },
   { path: "/friends", name: "Friends", component: Friends },
   { path: "/settings", name: "Settings", component: Settings },
+  { path: "/design-test", name: "DesignTest", component: DesignTest },
 ];
 
 const router = createRouter({

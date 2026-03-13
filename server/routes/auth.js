@@ -1,7 +1,8 @@
-// routes/players.js
 import express from "express";
-import {} from "../controllers/players.js";
+import { googleLogin } from "../services/auth.js";
 
 const router = express.Router();
+
+router.post("/google", googleLogin);
 
 export default router;

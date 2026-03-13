@@ -5,10 +5,12 @@
 import { app } from "../server.js";
 import playerRoutes from "../routes/players.js";
 import gameRoutes from "../routes/game.js";
+import authRoutes from "../routes/auth.js";
 
 // REST API routes
 app.use("/api/players", playerRoutes);
 app.use("/api/game", gameRoutes);
+app.use("/api/auth", authRoutes);
 
 // Fallback — serve Vue SPA for any unmatched route
 import path from "path";

@@ -13,13 +13,20 @@ app.use("/api/game", gameRoutes);
 app.use("/api/auth", authRoutes);
 
 // Fallback — serve Vue SPA for any unmatched route
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.get("*splat", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../client/dist/index.html"));
+  const indexPath = path.join(__dirname, "../../client/dist/index.html");
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send("Frontend build not found. If you are in dev mode, use the Vite dev server URL (usually http://localhost:5173).");
+  }
 });
 
 export default app;

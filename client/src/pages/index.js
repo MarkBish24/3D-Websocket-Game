@@ -1,4 +1,5 @@
 import Login from "./Login.vue";
+import LoginSuccess from "./LoginHelpers/LoginSuccess.vue";
 import Signup from "./Signup.vue";
 import Dashboard from "./Dashboard.vue";
 import Play from "./Play.vue";
@@ -9,6 +10,7 @@ import DesignTest from "../components/DesignTest.vue";
 
 export {
   Login,
+  LoginSuccess,
   Signup,
   Dashboard,
   Play,

@@ -9,7 +9,9 @@ import { Server } from "socket.io";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import connectDB from "./config/db.js";
+import { connectDB, pool } from "./config/db.js";
+import passport from "./config/passport.js";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,13 +29,19 @@ const io = new Server(httpServer, {
 app.use(express.json());
 app.use(cors());
 
-// Serve the built Vue client in production
-app.use(express.static(path.join(__dirname, "../client/dist")));
+// Serve the built Vue client in production if it exists
+const distPath = path.join(__dirname, "../client/dist");
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
+
+app.use(passport.initialize());
 
 // Connect to PostgreSQL — stores pool on app.locals.db
 connectDB(app);
 
 // Start the server
+
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

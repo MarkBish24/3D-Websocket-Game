@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import {
   Login,
+  LoginSuccess,
   Signup,
   Dashboard,
   Play,
@@ -13,6 +14,7 @@ import {
 const routes = [
   { path: "/", name: "Home", component: Dashboard },
   { path: "/login", name: "Login", component: Login },
+  { path: "/login-success", name: "LoginSuccess", component: LoginSuccess },
   { path: "/signup", name: "Signup", component: Signup },
   { path: "/play", name: "Play", component: Play },
   { path: "/profile", name: "Profile", component: Profile },

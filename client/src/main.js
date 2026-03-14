@@ -11,8 +11,9 @@ import vuetify from "./plugins/vuetify";
 import { OhVueIcon } from "oh-vue-icons";
 
 const app = createApp(App);
+const pinia = createPinia();
 
-app.use(createPinia());
+app.use(pinia);
 app.use(vuetify);
 app.use(router);
 app.use(Toast, { timeout: 3000 });

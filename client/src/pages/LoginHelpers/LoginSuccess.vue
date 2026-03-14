@@ -12,18 +12,43 @@
 <script setup>
 import { onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { useAuthStore } from "../../stores/authStore";
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 
 onMounted(() => {
   const token = route.query.token;
   if (token) {
-    localStorage.setItem("token", token);
-    // Redirect to home or dashboard after setting the token
-    router.push("/");
+    try {
+      // Decode JWT payload (middle part of the token)
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(""),
+      );
+
+      const userData = JSON.parse(jsonPayload);
+
+      // Map DB fields to what components expect
+      const user = {
+        id: userData.id,
+        email: userData.email,
+        name: userData.username,
+        picture: userData.picture,
+      };
+
+      authStore.setAuth(user, token);
+      router.push("/");
+    } catch (e) {
+      console.error("Token decoding failed", e);
+      router.push("/login");
+    }
   } else {
-    // If no token, send back to login
     router.push("/login");
   }
 });

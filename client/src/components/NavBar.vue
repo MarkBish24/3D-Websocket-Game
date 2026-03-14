@@ -1,18 +1,22 @@
 <template>
   <v-navigation-drawer width="220">
     <v-list density="compact" nav>
-      <template v-for="(item, index) in items" :key="item.title">
-        <v-list-item link @click="navigate(item.link)">
+      <template v-for="item in items" :key="item.title">
+        <v-list-item link @click="navigate(item.link)" class="nav-item">
           <v-row no-gutters align="center">
-            <v-icon :icon="item.icon" class="mr-3"></v-icon>
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
+            <v-icon :icon="item.icon" class="mr-3 nav-icon"></v-icon>
+            <v-list-item-title class="nav-title">{{
+              item.title
+            }}</v-list-item-title>
           </v-row>
         </v-list-item>
-        <v-divider
-          v-if="index < items.length - 1"
-          class="my-1 custom-divider"
-        ></v-divider>
       </template>
+      <v-list-item link @click="logout" class="mt-auto">
+        <v-row no-gutters align="center">
+          <v-icon icon="mdi-logout" class="mr-3" color="error"></v-icon>
+          <v-list-item-title class="text-error">Logout</v-list-item-title>
+        </v-row>
+      </v-list-item>
     </v-list>
   </v-navigation-drawer>
 </template>
@@ -21,7 +25,9 @@
 import { OhVueIcon, addIcons } from "oh-vue-icons";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "../stores/authStore";
 
+const authStore = useAuthStore();
 const router = useRouter();
 
 const navigate = (link) => {
@@ -43,8 +49,12 @@ const items = ref([
   { title: "Profile", icon: "mdi-account", link: "/profile" },
   { title: "Friends", icon: "mdi-account-group", link: "/friends" },
   { title: "Settings", icon: "mdi-cog", link: "/settings" },
-  { title: "Logout", icon: "mdi-logout", link: "/logout" },
 ]);
+
+const logout = () => {
+  authStore.logout();
+  router.push("/login");
+};
 </script>
 
 <style scoped>
@@ -55,10 +65,16 @@ const items = ref([
   margin-right: 12px;
 }
 
-/* Optional: Slight glow or highlight effect on hover */
-.v-list-item:hover {
-  background-color: rgba(var(--v-theme-primary), 0.05);
+/* Change text and icon color to primary on hover */
+.nav-item:hover .nav-icon,
+.nav-item:hover .nav-title {
+  color: rgb(var(--v-theme-primary)) !important;
+  transition: color 0.2s ease;
+}
+
+/* Smooth transition for non-hover state too */
+.nav-icon,
+.nav-title {
+  transition: color 0.2s ease;
 }
 </style>
-
-<style scoped></style>

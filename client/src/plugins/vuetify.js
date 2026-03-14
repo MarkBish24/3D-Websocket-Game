@@ -64,7 +64,7 @@ const testDarkTheme = {
 
 export default createVuetify({
   theme: {
-    defaultTheme: "customDarkTheme",
+    defaultTheme: "testDarkTheme",
     themes: {
       customLightTheme,
       customDarkTheme,

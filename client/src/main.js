@@ -17,5 +17,5 @@ app.use(pinia);
 app.use(vuetify);
 app.use(router);
 app.use(Toast, { timeout: 3000 });
-app.component("v-icon", OhVueIcon);
+app.component("v-oh-icon", OhVueIcon);
 app.mount("#app");

@@ -9,7 +9,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { connectDB, pool } from "./config/db.js";
+import { connectDB } from "./config/db.js";
 import passport from "./config/passport.js";
 import fs from "fs";
 

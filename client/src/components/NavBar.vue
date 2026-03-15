@@ -18,6 +18,8 @@
         </v-row>
       </v-list-item>
     </v-list>
+    <v-divider class="custom-divider"></v-divider>
+    <OnlineFriendsList />
   </v-navigation-drawer>
 </template>
 
@@ -26,6 +28,7 @@ import { OhVueIcon, addIcons } from "oh-vue-icons";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
+import OnlineFriendsList from "./OnlineFriendsList.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();

@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import process from "process";
-import { pool } from "./db.js";
+import { db } from "./db.js";
 
 passport.use(
   new GoogleStrategy(
@@ -12,23 +12,24 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        const existingUser = await pool.query(
-          "SELECT * FROM players WHERE provider_id = $1",
-          [profile.id],
-        );
-        if (existingUser.rows.length > 0) {
-          return done(null, existingUser.rows[0]);
+        let user = await db("players")
+          .where({ provider_id: profile.id })
+          .first();
+
+        if (user) {
+          return done(null, user);
         }
-        const newUser = await pool.query(
-          "INSERT INTO players (provider_id, email, username, picture) VALUES ($1, $2, $3, $4) RETURNING *",
-          [
-            profile.id,
-            profile.emails[0].value,
-            profile.displayName,
-            profile.photos[0].value,
-          ],
-        );
-        return done(null, newUser.rows[0]);
+
+        const [newUser] = await db("players")
+          .insert({
+            provider_id: profile.id,
+            email: profile.emails[0].value,
+            username: profile.displayName,
+            picture: profile.photos[0].value,
+          })
+          .returning("*");
+
+        return done(null, newUser);
       } catch (error) {
         console.error("Error in GoogleStrategy callback:", error);
         return done(error, false);

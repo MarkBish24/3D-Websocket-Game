@@ -6,11 +6,13 @@ import { app } from "../server.js";
 import playerRoutes from "../routes/players.js";
 import gameRoutes from "../routes/game.js";
 import authRoutes from "../routes/auth.js";
+import friendRoutes from "../routes/friends.js";
 
 // REST API routes
 app.use("/api/players", playerRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/friends", friendRoutes);
 
 // Fallback — serve Vue SPA for any unmatched route
 import fs from "fs";
@@ -25,7 +27,11 @@ app.get("*splat", (req, res) => {
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(404).send("Frontend build not found. If you are in dev mode, use the Vite dev server URL (usually http://localhost:5173).");
+    res
+      .status(404)
+      .send(
+        "Frontend build not found. If you are in dev mode, use the Vite dev server URL (usually http://localhost:5173).",
+      );
   }
 });
 

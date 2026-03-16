@@ -43,10 +43,10 @@
               >
                 <template v-slot:prepend>
                   <v-avatar color="primary" size="40">
-                    <v-img v-if="player.picture" :src="player.picture"></v-img>
-                    <span v-else class="text-white">{{
-                      player.username.charAt(0).toUpperCase()
-                    }}</span>
+                    <v-img
+                      :src="player.picture || defaultAvatar"
+                      @error="(e) => (e.target.src = defaultAvatar)"
+                    ></v-img>
                   </v-avatar>
                 </template>
 
@@ -84,6 +84,7 @@
 
 <script setup>
 import { ref, defineProps, defineEmits } from "vue";
+import defaultAvatar from "../../assets/Blank-Avatar-Icon.webp";
 
 const search = ref("");
 const loading = ref(false);
@@ -140,7 +141,9 @@ const sendFriendRequest = async (addresseeId) => {
 
     if (response.ok) {
       // Notify parent to remove from results
-      const updatedList = props.searchPlayers.filter((p) => p.id !== addresseeId);
+      const updatedList = props.searchPlayers.filter(
+        (p) => p.id !== addresseeId,
+      );
       emit("update:searchPlayers", updatedList);
       alert("Friend request sent!");
     }
@@ -157,7 +160,7 @@ const sendFriendRequest = async (addresseeId) => {
 }
 
 .search-card {
-  border-radius: 24px;
+  border-radius: 12px;
   background: rgba(var(--v-theme-surface), 0.8) !important;
   backdrop-filter: blur(12px);
   border: 1px solid rgba(var(--v-theme-primary), 0.2);

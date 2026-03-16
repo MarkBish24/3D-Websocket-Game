@@ -3,17 +3,13 @@
   <v-container class="mt-16 px-6">
     <v-row>
       <v-col cols="12">
-        <SearchPlayers v-model="search" v-model:searchPlayers="searchPlayers" />
-        <v-card>
-          <v-card-title>Friends</v-card-title>
-          <v-card-text>
-            <v-list>
-              <v-list-item v-for="friend in friends" :key="friend.id">
-                <v-list-item-title>{{ friend.username }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
+        <FriendRequestList class="mb-4" />
+        <SearchPlayers
+          v-model="search"
+          v-model:searchPlayers="searchPlayers"
+          class="mb-4"
+        />
+        <FriendList class="mt-4" />
       </v-col>
     </v-row>
   </v-container>

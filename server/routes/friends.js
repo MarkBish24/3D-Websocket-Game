@@ -10,7 +10,7 @@ import {
 
 const router = express.Router();
 
-router.get("/", authenticateToken, getFriends);
+router.get("/list", authenticateToken, getFriends);
 router.get("/requests", authenticateToken, getFriendRequests);
 router.post("/request", authenticateToken, sendFriendRequest);
 router.put("/respond", authenticateToken, respondToFriendRequest);

@@ -18,7 +18,9 @@ export const getFriendRequests = async (req, res) => {
     res.json(requests);
   } catch (error) {
     console.error("Error getting friend requests:", error);
-    res.status(500).json({ message: "Internal server error getting friend requests" });
+    res
+      .status(500)
+      .json({ message: "Internal server error getting friend requests" });
   }
 };
 
@@ -30,18 +32,33 @@ export const sendFriendRequest = async (req, res) => {
     res.status(201).json({ message: "Friend request sent" });
   } catch (error) {
     console.error("Error sending friend request:", error);
-    res.status(500).json({ message: "Internal server error sending friend request" });
+
+    // 1. Check for specific validation errors and return early
+    if (
+      error.message === "Already friends" ||
+      error.message === "Friend request already pending"
+    ) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    // 2. Fallback to a general error if it's not a validation error
+    res
+      .status(500)
+      .json({ message: "Internal server error sending friend request" });
   }
 };
 
 export const respondToFriendRequest = async (req, res) => {
   try {
+    const { id: actorId } = req.user;
     const { friendshipId, status } = req.body; // status: 'accepted' or 'declined'
-    await friendsService.handleRequest(friendshipId, status);
+    await friendsService.handleRequest(friendshipId, status, actorId);
     res.json({ message: `Request ${status}` });
   } catch (error) {
     console.error("Error responding to friend request:", error);
-    res.status(500).json({ message: "Internal server error responding to friend request" });
+    res
+      .status(500)
+      .json({ message: "Internal server error responding to friend request" });
   }
 };
 
@@ -53,6 +70,8 @@ export const searchFriends = async (req, res) => {
     res.json(players);
   } catch (error) {
     console.error("Error searching for friends:", error);
-    res.status(500).json({ message: "Internal server error searching for friends" });
+    res
+      .status(500)
+      .json({ message: "Internal server error searching for friends" });
   }
 };

@@ -56,6 +56,7 @@
 
                 <template v-slot:append>
                   <v-btn
+                    v-if="!player.friendship_status"
                     color="primary"
                     variant="tonal"
                     rounded="xl"
@@ -65,6 +66,20 @@
                   >
                     Add Friend
                   </v-btn>
+
+                  <v-chip
+                    v-else-if="player.friendship_status === 'pending'"
+                    color="warning"
+                  >
+                    {{ player.friendship_status }}
+                  </v-chip>
+
+                  <v-chip
+                    v-else-if="player.friendship_status === 'accepted'"
+                    color="success"
+                  >
+                    {{ player.friendship_status }}
+                  </v-chip>
                 </template>
               </v-list-item>
             </v-list>

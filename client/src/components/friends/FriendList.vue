@@ -73,15 +73,11 @@ getFriends();
   border-bottom: none;
 }
 
-.settings-btn:hover {
-  color: rgb(var(--v-theme-success));
+.settings-btn {
+  transition: color 0.2s ease;
 }
 
 .settings-btn:hover {
   color: rgb(var(--v-theme-primary));
-}
-
-.settings-btn:hover {
-  color: rgb(var(--v-theme-info));
 }
 </style>

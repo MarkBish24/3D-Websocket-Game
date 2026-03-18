@@ -40,6 +40,7 @@
                 v-for="player in searchPlayers"
                 :key="player.id"
                 class="px-4 py-2 border-bottom"
+                @click="goToProfile(player.id)"
               >
                 <template v-slot:prepend>
                   <v-avatar color="primary" size="40">
@@ -99,9 +100,11 @@
 
 <script setup>
 import { ref, defineProps, defineEmits } from "vue";
+import { useRouter } from "vue-router";
 import defaultAvatar from "../../assets/Blank-Avatar-Icon.webp";
 
 const search = ref("");
+const router = useRouter();
 const loading = ref(false);
 let searchTimeout = null;
 
@@ -165,6 +168,10 @@ const sendFriendRequest = async (addresseeId) => {
   } catch (error) {
     console.error("Error sending friend request:", error);
   }
+};
+
+const goToProfile = (id) => {
+  router.push(`/profile/${id}`);
 };
 </script>
 

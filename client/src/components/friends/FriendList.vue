@@ -1,5 +1,5 @@
 <template>
-  <v-card class="rounded-md">
+  <v-card v-if="friends.length > 0" class="rounded-md">
     <v-card-title class="text-h6 font-weight-bold py-3 px-6"
       >Friends</v-card-title
     >
@@ -37,13 +37,44 @@
       </v-list>
     </v-card-text>
   </v-card>
+  <v-card
+    v-else
+    class="empty-friends-card glass-card pa-8 text-center"
+    elevation="0"
+  >
+    <div class="empty-state-content">
+      <v-icon
+        icon="mdi-account-search-outline"
+        size="80"
+        color="primary"
+        class="mb-6 op-50 pulse-animation"
+      ></v-icon>
+      <div class="text-h5 font-weight-bold mb-2">No Friends Yet</div>
+      <p class="text-body-1 text-grey-lighten-1 mb-8">
+        Your list is looking a bit lonely. Let's find some friends!
+      </p>
+      <v-btn
+        color="primary"
+        variant="elevated"
+        rounded="xl"
+        size="large"
+        prepend-icon="mdi-gamepad-variant"
+        @click="router.push('/play')"
+        class="px-8 glow-btn"
+      >
+        Play Now
+      </v-btn>
+    </div>
+  </v-card>
 </template>
 
 <script setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import defaultAvatar from "../../assets/Blank-Avatar-Icon.webp";
 
 const friends = ref([]);
+const router = useRouter();
 
 const getFriends = async () => {
   try {
@@ -79,5 +110,45 @@ getFriends();
 
 .settings-btn:hover {
   color: rgb(var(--v-theme-primary));
+}
+
+.glass-card {
+  background: rgba(var(--v-theme-surface), 0.6) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(var(--v-theme-primary), 0.1) !important;
+  border-radius: 20px !important;
+}
+
+.pulse-animation {
+  animation: pulse 3s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+}
+
+.glow-btn {
+  box-shadow: 0 0 15px rgba(var(--v-theme-primary), 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.glow-btn:hover {
+  box-shadow: 0 0 25px rgba(var(--v-theme-primary), 0.5) !important;
+  transform: translateY(-2px);
+}
+
+.op-50 {
+  opacity: 0.5;
 }
 </style>

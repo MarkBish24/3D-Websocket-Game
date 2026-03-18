@@ -25,7 +25,7 @@
 
 <script setup>
 import { OhVueIcon, addIcons } from "oh-vue-icons";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import OnlineFriendsList from "./OnlineFriendsList.vue";
@@ -46,10 +46,14 @@ addIcons(
   "mdi-logout",
 );
 
-const items = ref([
+const items = computed(() => [
   { title: "Dashboard", icon: "mdi-view-dashboard", link: "/" },
   { title: "Play", icon: "mdi-gamepad", link: "/play" },
-  { title: "Profile", icon: "mdi-account", link: "/profile" },
+  {
+    title: "Profile",
+    icon: "mdi-account",
+    link: authStore.user ? `/profile/${authStore.user.id}` : "/profile",
+  },
   { title: "Friends", icon: "mdi-account-group", link: "/friends" },
   { title: "Settings", icon: "mdi-cog", link: "/settings" },
 ]);

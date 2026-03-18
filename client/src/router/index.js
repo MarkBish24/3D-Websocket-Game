@@ -17,7 +17,7 @@ const routes = [
   { path: "/login-success", name: "LoginSuccess", component: LoginSuccess },
   { path: "/signup", name: "Signup", component: Signup },
   { path: "/play", name: "Play", component: Play },
-  { path: "/profile", name: "Profile", component: Profile },
+  { path: "/profile/:id", name: "Profile", component: Profile },
   { path: "/friends", name: "Friends", component: Friends },
   { path: "/settings", name: "Settings", component: Settings },
   { path: "/design-test", name: "DesignTest", component: DesignTest },

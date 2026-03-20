@@ -23,13 +23,15 @@ socialNamespace.on("connect", (socket) => {
 
   addSocketToUser(socket.user.id, socket.id);
 
-  if (userSockets.get(socket.user.id).size === 1) {
+  if (getSocketsForUser(socket.user.id).size === 1) {
     socialNamespace.to(`user:${socket.user.id}`).emit("user:online", {
       userId: socket.user.id,
     });
   }
 
-  console.log(`User connected to social namespace: ${socket.user.id}`);
+  console.log(
+    `User connected to social namespace: ${socket.user.id}:${socket.user.username}`,
+  );
 
   socket.on("disconnect", () => {
     removeSocketFromUser(socket.user.id, socket.id);
@@ -38,6 +40,8 @@ socialNamespace.on("connect", (socket) => {
         userId: socket.user.id,
       });
     }
-    console.log(`User disconnected from social namespace: ${socket.user.id}`);
+    console.log(
+      `User disconnected from social namespace: ${socket.user.id}:${socket.user.username}`,
+    );
   });
 });

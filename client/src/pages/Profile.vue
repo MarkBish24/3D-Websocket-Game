@@ -8,10 +8,15 @@
     <v-row v-else-if="player">
       <v-col cols="12">
         <v-row align="center" no-gutters>
-          <v-avatar size="100" class="mr-3">
-            <v-img :src="player.picture || '/Blank-Avatar-Icon.webp'"></v-img>
-          </v-avatar>
-          <h1 class="text-h4" v-if="isOwnProfile">Your Profile</h1>
+          <div class="avatar-wrapper" :class="{ 'clickable': isOwnProfile }">
+            <v-avatar size="100" class="mr-3 avatar-main">
+              <v-img :src="player.picture || '/Blank-Avatar-Icon.webp'"></v-img>
+              <div v-if="isOwnProfile" class="avatar-overlay d-flex align-center justify-center">
+                <v-icon icon="mdi-camera" color="white" size="32"></v-icon>
+              </div>
+            </v-avatar>
+          </div>
+          <h1 class="text-h4" v-if="isOwnProfile">{{ player.username }}</h1>
           <h1 class="text-h4" v-else>{{ player.username }}'s Profile</h1>
         </v-row>
       </v-col>
@@ -54,6 +59,14 @@ const fetchPlayer = async (id) => {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
+
+    if (response.status === 401 || response.status === 403) {
+      // Session expired or invalid
+      authStore.logout();
+      window.location.href = "/login"; // Or use router.push('/login')
+      return;
+    }
+
     if (response.ok) {
       const data = await response.json();
       player.value = data;
@@ -79,4 +92,36 @@ watch(
 );
 </script>
 
-<style scoped></style>
+<style scoped>
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.avatar-wrapper.clickable:hover {
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
+.avatar-main {
+  position: relative;
+  overflow: hidden;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.avatar-wrapper.clickable:hover .avatar-overlay {
+  opacity: 1;
+}
+</style>

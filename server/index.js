@@ -4,4 +4,4 @@
 
 import "./server.js"; // start Express + Socket.io + DB
 import "./express/expressMain.js"; // register REST routes
-import "./sockets/gameSocket.js"; // register Socket.io events
+import "./sockets/socialSocket.js"; // register Socket.io events

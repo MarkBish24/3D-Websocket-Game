@@ -1,4 +1,4 @@
-import authenticateToken from "../middleware/middleware.js";
+import { authenticateToken } from "../middleware/middleware.js";
 import { getPlayerById, updatePlayerById } from "../controllers/players.js";
 import express from "express";
 

@@ -1,5 +1,5 @@
 import express from "express";
-import authenticateToken from "../middleware/middleware.js";
+import { authenticateToken } from "../middleware/middleware.js";
 import {
   getFriends,
   getFriendRequests,

@@ -13,7 +13,7 @@ export const Login = async (req, res) => {
   const payload = ticket.getPayload();
   const { email, name, picture } = payload;
   const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
+    expiresIn: "7d",
   });
   res.json({ email, name, picture, token });
 };

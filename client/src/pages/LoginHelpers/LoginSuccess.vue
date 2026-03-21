@@ -13,6 +13,7 @@
 import { onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../../stores/authStore";
+import { connectSocialSocket } from "../../plugins/userSocket.js";
 
 const router = useRouter();
 const route = useRoute();
@@ -43,6 +44,7 @@ onMounted(() => {
       };
 
       authStore.setAuth(user, token);
+      connectSocialSocket(token);
       router.push("/");
     } catch (e) {
       console.error("Token decoding failed", e);

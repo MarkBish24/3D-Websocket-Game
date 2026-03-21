@@ -1,5 +1,5 @@
-import { useAuthStore } from "../stores/authStore.js";
 import { io } from "socket.io-client";
+import { useFriendsStore } from "../stores/friendsStore.js";
 
 let socialSocket = null;
 
@@ -14,6 +14,7 @@ export function connectSocialSocket(token) {
 
   socialSocket.on("connect", () => {
     console.log("Connected to social namespace: ", socialSocket.id);
+    useFriendsStore().initSocketListeners();
   });
 
   socialSocket.on("connect_error", (err) => {

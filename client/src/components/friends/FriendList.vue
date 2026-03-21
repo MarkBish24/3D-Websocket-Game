@@ -12,12 +12,17 @@
           class="px-4 border-bottom"
         >
           <template v-slot:prepend>
-            <v-avatar color="primary" size="40">
-              <v-img
-                :src="friend.picture || defaultAvatar"
-                @error="(e) => (e.target.src = defaultAvatar)"
-              ></v-img>
-            </v-avatar>
+            <v-badge
+              :color="
+                friendsStore.isFriendOnline(friend.id) ? 'success' : 'grey'
+              "
+              dot
+              location="bottom end"
+            >
+              <v-avatar color="primary" size="40">
+                <v-img :src="friend.picture || defaultAvatar"></v-img>
+              </v-avatar>
+            </v-badge>
           </template>
 
           <v-list-item-title class="font-weight-bold">{{
@@ -72,8 +77,10 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import defaultAvatar from "../../assets/Blank-Avatar-Icon.webp";
+import { useFriendsStore } from "../../stores/friendsStore.js";
 
 const friends = ref([]);
+const friendsStore = useFriendsStore();
 const router = useRouter();
 
 const getFriends = async () => {

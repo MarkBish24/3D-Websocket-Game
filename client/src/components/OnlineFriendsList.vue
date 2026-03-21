@@ -8,7 +8,11 @@
         class="friend-tile"
       >
         <template v-slot:prepend>
-          <v-badge color="success" dot location="bottom end">
+          <v-badge
+            :color="friendsStore.getFriendBadgeColor(friend.id)"
+            dot
+            location="bottom end"
+          >
             <v-avatar color="primary" size="32">
               <v-img :src="friend.picture"></v-img>
             </v-avatar>
@@ -24,7 +28,11 @@
         class="friend-tile"
       >
         <template v-slot:prepend>
-          <v-badge color="grey" dot location="bottom end">
+          <v-badge
+            :color="friendsStore.getFriendBadgeColor(friend.id)"
+            dot
+            location="bottom end"
+          >
             <v-avatar color="primary" size="32">
               <v-img :src="friend.picture"></v-img>
             </v-avatar>

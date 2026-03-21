@@ -6,6 +6,7 @@ import {
   getSocketsForUser,
 } from "./socketStore.js";
 import { getFriends } from "../services/friends.js";
+import { getPlayerById } from "../services/players.js";
 
 // ─── Socket.io Social Events ────────────────────────────────────────────────────
 
@@ -30,19 +31,30 @@ socialNamespace.on("connect", async (socket) => {
 
   // Get the user's friends
   const friends = await getFriends(user.id);
+  const player = await getPlayerById(user.id);
 
-  // Check Which friends are currently online
-  const onlineFriendsIds = friends
-    .filter((friend) => getSocketsForUser(friend.id).size > 0)
-    .map((friend) => friend.id);
+  // Check which friends are currently online and get their public status
+  const onlineFriends = [];
+  for (const friend of friends) {
+    if (getSocketsForUser(friend.id).size > 0) {
+      const friendPlayer = await getPlayerById(friend.id);
+      onlineFriends.push({
+        id: friend.id,
+        public: friendPlayer.public,
+      });
+    }
+  }
 
   // Send the list of online friends to the user
-  socket.emit("friends:online", onlineFriendsIds);
+  socket.emit("friends:online", onlineFriends);
 
   // If this is the first socket for this user, emit online event
   if (getSocketsForUser(user.id).size === 1) {
-    for (const friendId of onlineFriendsIds) {
-      socialNamespace.to(`user:${friendId}`).emit("friend:online", user.id);
+    for (const friend of onlineFriends) {
+      socialNamespace.to(`user:${friend.id}`).emit("friend:online", {
+        id: user.id,
+        public: player.public,
+      });
     }
     console.log(`User ${user.id}:${user.username} is now online`);
   }
@@ -52,8 +64,8 @@ socialNamespace.on("connect", async (socket) => {
     removeSocketFromUser(user.id, socket.id);
     // If this is the last socket for this user, emit offline event
     if (getSocketsForUser(user.id).size === 0) {
-      for (const friendId of onlineFriendsIds) {
-        socialNamespace.to(`user:${friendId}`).emit("friend:offline", user.id);
+      for (const friend of onlineFriends) {
+        socialNamespace.to(`user:${friend.id}`).emit("friend:offline", user.id);
       }
       console.log(`User ${user.id}:${user.username} is now offline`);
     }

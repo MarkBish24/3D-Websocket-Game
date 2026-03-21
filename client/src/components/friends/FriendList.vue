@@ -13,9 +13,7 @@
         >
           <template v-slot:prepend>
             <v-badge
-              :color="
-                friendsStore.isFriendOnline(friend.id) ? 'success' : 'grey'
-              "
+              :color="friendsStore.getFriendBadgeColor(friend.id)"
               dot
               location="bottom end"
             >

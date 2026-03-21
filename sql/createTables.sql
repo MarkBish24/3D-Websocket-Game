@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS players (
   picture TEXT,
   bio TEXT,
   last_online TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  public BOOLEAN DEFAULT TRUE
 );
 
 --------------------------------------

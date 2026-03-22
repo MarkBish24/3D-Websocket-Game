@@ -8,7 +8,8 @@
         <v-switch
           v-model="publicStatus"
           label="Public"
-          @change="updatePublicStatus"
+          color="success"
+          @update:model-value="updatePublicStatus"
         ></v-switch>
       </v-col>
     </v-row>
@@ -16,7 +17,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import NavBar from "../components/NavBar.vue";
 import { useTheme } from "vuetify";
 import { useAuthStore } from "../stores/authStore";
@@ -50,14 +51,20 @@ const getPublicStatus = async () => {
       publicStatus.value = data.public;
     }
   } catch (err) {
-    console.err("Failed to get public status", err.message);
+    console.error("Failed to get public status", err.message);
   }
 };
+
+onMounted(() => {
+  if (authStore.user) {
+    getPublicStatus();
+  }
+});
 
 const updatePublicStatus = async () => {
   try {
     const response = await fetch(
-      `http://localhost:3000/api/players/${authStore.user.id}`,
+      `http://localhost:3000/api/players/${authStore.user.id}/public`,
       {
         method: "PUT",
         headers: {
@@ -72,7 +79,7 @@ const updatePublicStatus = async () => {
       authStore.user.public = publicStatus.value;
     }
   } catch (err) {
-    console.err("Failed to update public status", err.message);
+    console.error("Failed to update public status", err.message);
   }
 };
 </script>

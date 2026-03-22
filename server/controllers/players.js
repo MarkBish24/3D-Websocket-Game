@@ -44,7 +44,7 @@ export const updatePlayerPublicStatus = async (req, res) => {
       return res.status(403).json({ message: "You are not authorized to update this profile" });
     }
 
-    const player = await playerServices.updatePlayerPublicStatus(id, req.body);
+    const player = await playerServices.updatePlayerPublicStatus(id, req.body.public);
     res.status(200).json(player);
   } catch (error) {
     console.error("Error updating player by ID:", error);

@@ -45,6 +45,29 @@ export const sendFriendRequest = async (requesterId, addresseeId) => {
     } else if (existingFriendship.status === "pending") {
       throw new Error("Friend request already pending");
     }
+
+    // If it was previously declined, update the row instead of creating a new one!
+    if (existingFriendship.status === "declined") {
+      return await db.transaction(async (trx) => {
+        const [friendship] = await trx("friendships")
+          .where({ id: existingFriendship.id })
+          .update({
+            requester_id: requesterId,
+            addressee_id: addresseeId,
+            status: "pending",
+            updated_at: db.fn.now(),
+          })
+          .returning("*");
+
+        await trx("friendship_events").insert({
+          friendship_id: friendship.id,
+          actor_id: requesterId,
+          event: "requested",
+        });
+
+        return friendship;
+      });
+    }
   }
 
   // 2. Perform transactional insert

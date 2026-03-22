@@ -32,14 +32,14 @@ export const sendFriendRequest = async (req, res) => {
     const { addresseeId } = req.body;
 
     // save request to database
-    await friendsService.sendFriendRequest(requesterId, addresseeId);
+    const friendship = await friendsService.sendFriendRequest(requesterId, addresseeId);
 
     // get requester info
     const requester = await getPlayerById(requesterId);
 
     // send request to addressee
     io.of("/social").to(`user:${addresseeId}`).emit("friend:request_received", {
-      id: requester.id,
+      id: friendship.id,
       username: requester.username,
       picture: requester.picture,
     });

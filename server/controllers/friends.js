@@ -1,4 +1,6 @@
 import * as friendsService from "../services/friends.js";
+import { getPlayerById } from "../services/players.js";
+import { io } from "../server.js";
 
 export const getFriends = async (req, res) => {
   try {
@@ -28,7 +30,19 @@ export const sendFriendRequest = async (req, res) => {
   try {
     const { id: requesterId } = req.user;
     const { addresseeId } = req.body;
+
+    // save request to database
     await friendsService.sendFriendRequest(requesterId, addresseeId);
+
+    // get requester info
+    const requester = await getPlayerById(requesterId);
+
+    // send request to addressee
+    io.of("/social").to(`user:${addresseeId}`).emit("friend:request_received", {
+      id: requester.id,
+      username: requester.username,
+      picture: requester.picture,
+    });
     res.status(201).json({ message: "Friend request sent" });
   } catch (error) {
     console.error("Error sending friend request:", error);
@@ -52,7 +66,25 @@ export const respondToFriendRequest = async (req, res) => {
   try {
     const { id: actorId } = req.user;
     const { friendshipId, status } = req.body; // status: 'accepted' or 'declined'
-    await friendsService.handleRequest(friendshipId, status, actorId);
+
+    const { friendship } = await friendsService.handleRequest(
+      friendshipId,
+      status,
+      actorId,
+    );
+
+    // get addressee info
+    const actor = await getPlayerById(actorId);
+
+    // Notify the original requester
+    io.of("/social")
+      .to(`user:${friendship.requester_id}`)
+      .emit(`friend:request_${status}`, {
+        id: actor.id,
+        username: actor.username,
+        picture: actor.picture,
+      });
+
     res.json({ message: `Request ${status}` });
   } catch (error) {
     console.error("Error responding to friend request:", error);

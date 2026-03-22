@@ -102,10 +102,12 @@
 import { ref, defineProps, defineEmits } from "vue";
 import { useRouter } from "vue-router";
 import defaultAvatar from "../../assets/Blank-Avatar-Icon.webp";
+import { useFriendsStore } from "../../stores/friendsStore.js";
 
 const search = ref("");
 const router = useRouter();
 const loading = ref(false);
+const friendsStore = useFriendsStore();
 let searchTimeout = null;
 
 const props = defineProps({
@@ -163,7 +165,7 @@ const sendFriendRequest = async (addresseeId) => {
         (p) => p.id !== addresseeId,
       );
       emit("update:searchPlayers", updatedList);
-      alert("Friend request sent!");
+      friendsStore.showToast("Friend Request Sent", `Request sent to ${props.searchPlayers.find(p => p.id === addresseeId)?.username}!`, "success");
     }
   } catch (error) {
     console.error("Error sending friend request:", error);

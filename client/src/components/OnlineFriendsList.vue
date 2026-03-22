@@ -13,7 +13,7 @@
             dot
             location="bottom end"
           >
-            <v-avatar color="primary" size="32">
+            <v-avatar color="primary" size="32" class="thick-border">
               <v-img :src="friend.picture"></v-img>
             </v-avatar>
           </v-badge>
@@ -33,7 +33,7 @@
             dot
             location="bottom end"
           >
-            <v-avatar color="primary" size="32">
+            <v-avatar color="primary" size="32" class="thick-border">
               <v-img :src="friend.picture"></v-img>
             </v-avatar>
           </v-badge>
@@ -105,5 +105,9 @@ onMounted(() => {
 .friend-tile:active {
   background-color: rgba(var(--v-theme-primary), 0.2);
   transition: background-color 0.2s ease;
+}
+
+.thick-border {
+  border: 2px solid rgb(var(--v-theme-surface)) !important;
 }
 </style>

@@ -17,7 +17,7 @@
               dot
               location="bottom end"
             >
-              <v-avatar color="primary" size="40">
+              <v-avatar color="primary" size="40" class="thick-border">
                 <v-img :src="friend.picture || defaultAvatar"></v-img>
               </v-avatar>
             </v-badge>
@@ -155,5 +155,9 @@ getFriends();
 
 .op-50 {
   opacity: 0.5;
+}
+
+.thick-border {
+  border: 2px solid rgb(var(--v-theme-surface)) !important;
 }
 </style>

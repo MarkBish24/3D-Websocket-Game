@@ -8,13 +8,26 @@
     <v-row v-else-if="player">
       <v-col cols="12">
         <v-row align="center" no-gutters>
-          <div class="avatar-wrapper" :class="{ 'clickable': isOwnProfile }">
-            <v-avatar size="100" class="mr-3 avatar-main">
-              <v-img :src="player.picture || '/Blank-Avatar-Icon.webp'"></v-img>
-              <div v-if="isOwnProfile" class="avatar-overlay d-flex align-center justify-center">
-                <v-icon icon="mdi-camera" color="white" size="32"></v-icon>
-              </div>
-            </v-avatar>
+          <div class="avatar-wrapper" :class="{ clickable: isOwnProfile }">
+            <v-badge
+              :color="friendsStore.getFriendBadgeColor(player.id)"
+              dot
+              location="bottom end"
+              :offset-x="24"
+              :offset-y="24"
+            >
+              <v-avatar size="100" class="mr-3 avatar-main thick-border">
+                <v-img
+                  :src="player.picture || '/Blank-Avatar-Icon.webp'"
+                ></v-img>
+              </v-avatar>
+            </v-badge>
+            <div
+              v-if="isOwnProfile"
+              class="avatar-overlay d-flex align-center justify-center"
+            >
+              <v-icon icon="mdi-camera" color="white" size="32"></v-icon>
+            </div>
           </div>
           <h1 class="text-h4" v-if="isOwnProfile">{{ player.username }}</h1>
           <h1 class="text-h4" v-else>{{ player.username }}'s Profile</h1>
@@ -36,9 +49,11 @@ import NavBar from "../components/NavBar.vue";
 import { useRoute } from "vue-router";
 import { ref, onMounted, watch, computed } from "vue";
 import { useAuthStore } from "../stores/authStore";
+import { useFriendsStore } from "../stores/friendsStore";
 
 const authStore = useAuthStore();
 const route = useRoute();
+const friendsStore = useFriendsStore();
 const player = ref(null);
 const loading = ref(true);
 
@@ -123,5 +138,15 @@ watch(
 
 .avatar-wrapper.clickable:hover .avatar-overlay {
   opacity: 1;
+}
+
+:deep(.v-badge__badge) {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgb(var(--v-theme-surface)) !important;
+}
+
+.thick-border {
+  border: 3px solid rgb(var(--v-theme-surface)) !important;
 }
 </style>

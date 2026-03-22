@@ -6,7 +6,8 @@ let socialSocket = null;
 export function connectSocialSocket(token) {
   if (socialSocket) return;
 
-  socialSocket = io("/social", {
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+  socialSocket = io(`${apiUrl}/social`, {
     auth: {
       token: token,
     },

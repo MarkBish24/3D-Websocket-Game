@@ -36,7 +36,7 @@ function toggleTheme() {
 const getPublicStatus = async () => {
   try {
     const response = await fetch(
-      `http://localhost:3000/api/players/${authStore.user.id}`,
+      `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/players/${authStore.user.id}`,
       {
         method: "GET",
         headers: {
@@ -64,7 +64,7 @@ onMounted(() => {
 const updatePublicStatus = async () => {
   try {
     const response = await fetch(
-      `http://localhost:3000/api/players/${authStore.user.id}/public`,
+      `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/players/${authStore.user.id}/public`,
       {
         method: "PUT",
         headers: {

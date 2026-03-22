@@ -130,7 +130,7 @@ const handleSearch = () => {
 const fetchSearchResults = async () => {
   try {
     const response = await fetch(
-      `http://localhost:3000/api/friends/search?query=${encodeURIComponent(search.value)}`,
+      `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/friends/search?query=${encodeURIComponent(search.value)}`,
       {
         method: "GET",
         headers: {
@@ -150,7 +150,7 @@ const fetchSearchResults = async () => {
 
 const sendFriendRequest = async (addresseeId) => {
   try {
-    const response = await fetch("http://localhost:3000/api/friends/request", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/friends/request`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

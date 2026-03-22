@@ -47,7 +47,7 @@ const friendRequests = ref([]);
 
 const fetchFriendRequests = async () => {
   try {
-    const response = await fetch("http://localhost:3000/api/friends/requests", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/friends/requests`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -63,7 +63,7 @@ const fetchFriendRequests = async () => {
 
 const handleResponse = async (friendshipId, status) => {
   try {
-    const response = await fetch("http://localhost:3000/api/friends/respond", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/friends/respond`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

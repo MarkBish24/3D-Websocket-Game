@@ -52,7 +52,7 @@ const items = computed(() => [
   {
     title: "Profile",
     icon: "mdi-account",
-    link: authStore.user ? `/profile/${authStore.user.id}` : "/profile",
+    link: authStore.user ? `/profile/${authStore.user.name}` : "/profile",
   },
   { title: "Friends", icon: "mdi-account-group", link: "/friends" },
   { title: "Settings", icon: "mdi-cog", link: "/settings" },

@@ -1,5 +1,5 @@
-// controllers/players.js
 import * as playerServices from "../services/players.js";
+import jwt from "jsonwebtoken";
 
 export const getPlayerById = async (req, res) => {
   try {
@@ -11,6 +11,19 @@ export const getPlayerById = async (req, res) => {
     res
       .status(500)
       .json({ message: "Internal server error getting player by ID" });
+  }
+};
+
+export const getPlayerByUsername = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const player = await playerServices.getPlayerByUsername(username);
+    res.status(200).json(player);
+  } catch (error) {
+    console.error("Error getting player by username:", error);
+    res
+      .status(500)
+      .json({ message: "Internal server error getting player by username" });
   }
 };
 
@@ -74,9 +87,23 @@ export const completePlayerSetup = async (req, res) => {
     }
 
     const player = await playerServices.completePlayerSetup(id, username);
-    res.status(200).json(player);
+    
+    // Generate a fresh token with the new custom username and setup flag
+    const token = jwt.sign(
+      {
+        id: player.id,
+        email: player.email,
+        username: player.username,
+        picture: player.picture,
+        setup_complete: player.setup_complete,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.status(200).json({ player, token });
   } catch (error) {
-    if (error.code === '23505') {
+    if (error.code === "23505") {
       return res.status(400).json({ message: "Username is already taken" });
     }
     console.error("Error completing player setup:", error);

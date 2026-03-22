@@ -40,7 +40,7 @@
                 v-for="player in searchPlayers"
                 :key="player.id"
                 class="px-4 py-2 border-bottom"
-                @click="goToProfile(player.id)"
+                @click="goToProfile(player.username)"
               >
                 <template v-slot:prepend>
                   <v-avatar color="primary" size="40">
@@ -172,8 +172,8 @@ const sendFriendRequest = async (addresseeId) => {
   }
 };
 
-const goToProfile = (id) => {
-  router.push(`/profile/${id}`);
+const goToProfile = (username) => {
+  router.push(`/profile/${username}`);
 };
 </script>
 

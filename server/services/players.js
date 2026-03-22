@@ -10,6 +10,16 @@ const getPlayerById = async (id) => {
   }
 };
 
+const getPlayerByUsername = async (username) => {
+  try {
+    const player = await db("players").where({ username }).first();
+    return player;
+  } catch (error) {
+    console.log("Error getting player with username", error);
+    throw error;
+  }
+};
+
 const updatePlayerById = async (id, player) => {
   try {
     const [updatedPlayer] = await db("players")
@@ -46,6 +56,7 @@ const completePlayerSetup = async (id, username) => {
 
 export {
   getPlayerById,
+  getPlayerByUsername,
   updatePlayerById,
   updatePlayerPublicStatus,
   completePlayerSetup,

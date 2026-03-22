@@ -66,17 +66,20 @@ const isOwnProfile = computed(() => {
   );
 });
 
-const fetchPlayer = async (id) => {
-  if (!id) return;
+const fetchPlayer = async (username) => {
+  if (!username) return;
   loading.value = true;
   try {
-    const response = await fetch(`http://localhost:3000/api/players/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+    const response = await fetch(
+      `http://localhost:3000/api/players/username/${username}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       },
-    });
+    );
 
     if (response.status === 401 || response.status === 403) {
       // Session expired or invalid
@@ -98,14 +101,14 @@ const fetchPlayer = async (id) => {
 };
 
 onMounted(() => {
-  fetchPlayer(route.params.id);
+  fetchPlayer(route.params.username);
 });
 
 // Watch for route changes to re-fetch if we navigate to another profile
 watch(
-  () => route.params.id,
-  (newId) => {
-    fetchPlayer(newId);
+  () => route.params.username,
+  (newUsername) => {
+    fetchPlayer(newUsername);
   },
 );
 </script>

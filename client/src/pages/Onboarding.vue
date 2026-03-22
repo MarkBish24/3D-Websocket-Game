@@ -93,8 +93,9 @@ const submitUsername = async () => {
       },
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const data = await response.json();
       if (response.status === 400) {
         throw new Error("Username is already taken. Try another one!");
       } else {
@@ -102,11 +103,18 @@ const submitUsername = async () => {
       }
     }
 
-    // Success! Update local store to use the new name
-    authStore.user.name = username.value;
-
-    // Connect socket now that setup is complete
-    connectSocialSocket(authStore.token);
+    // Success! Update local store to completely refresh the user and exact token
+    const user = {
+      id: data.player.id,
+      email: data.player.email,
+      name: data.player.username,
+      picture: data.player.picture
+    };
+    
+    authStore.setAuth(user, data.token);
+    
+    // Connect socket now that setup is complete using the FRESH token
+    connectSocialSocket(data.token);
 
     // Send them to the dashboard
     router.push("/");

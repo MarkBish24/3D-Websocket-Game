@@ -18,7 +18,7 @@
             </v-avatar>
           </v-badge>
         </template>
-        <v-list-item-title @click="router.push(`/profile/${friend.id}`)">{{
+        <v-list-item-title @click="router.push(`/profile/${friend.username}`)">{{
           friend.username
         }}</v-list-item-title>
       </v-list-item>
@@ -40,7 +40,7 @@
         </template>
         <v-list-item-title
           class="text-grey"
-          @click="router.push(`/profile/${friend.id}`)"
+          @click="router.push(`/profile/${friend.username}`)"
           >{{ friend.username }}</v-list-item-title
         >
       </v-list-item>

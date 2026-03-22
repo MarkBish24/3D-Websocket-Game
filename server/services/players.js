@@ -23,4 +23,12 @@ const updatePlayerById = async (id, player) => {
   }
 };
 
-export { getPlayerById, updatePlayerById };
+const updatePlayerPublicStatus = async (id, publicStatus) => {
+  const [updatedPlayer] = await db("players")
+    .where({ id })
+    .update({ public: publicStatus })
+    .returning("*");
+  return updatedPlayer;
+};
+
+export { getPlayerById, updatePlayerById, updatePlayerPublicStatus };

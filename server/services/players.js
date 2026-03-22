@@ -31,4 +31,22 @@ const updatePlayerPublicStatus = async (id, publicStatus) => {
   return updatedPlayer;
 };
 
-export { getPlayerById, updatePlayerById, updatePlayerPublicStatus };
+const completePlayerSetup = async (id, username) => {
+  try {
+    const [updatePlayer] = await db("players")
+      .where({ id })
+      .update({ username, setup_complete: true })
+      .returning("*");
+    return updatePlayer;
+  } catch (err) {
+    console.error("Error completing player setup:", err);
+    throw err;
+  }
+};
+
+export {
+  getPlayerById,
+  updatePlayerById,
+  updatePlayerPublicStatus,
+  completePlayerSetup,
+};

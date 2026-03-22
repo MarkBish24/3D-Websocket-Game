@@ -18,7 +18,9 @@
             >
               <v-avatar size="100" class="mr-3 avatar-main thick-border">
                 <v-img
-                  :src="player.picture || '/Blank-Avatar-Icon.webp'"
+                  :src="player.picture || defaultAvatar"
+                  referrerpolicy="no-referrer"
+                  @error="(e) => (e.target.src = defaultAvatar)"
                 ></v-img>
               </v-avatar>
             </v-badge>
@@ -50,6 +52,7 @@ import { useRoute } from "vue-router";
 import { ref, onMounted, watch, computed } from "vue";
 import { useAuthStore } from "../stores/authStore";
 import { useFriendsStore } from "../stores/friendsStore";
+import defaultAvatar from "../assets/Blank-Avatar-Icon.webp";
 
 const authStore = useAuthStore();
 const route = useRoute();

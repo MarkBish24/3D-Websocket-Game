@@ -19,13 +19,16 @@ passport.use(
         if (user) {
           return done(null, user);
         }
+        //create a random username with numbers to guarantee uniqueness on creation
+        const tempUsername = `${profile.displayName}${Math.floor(Math.random() * 100000)}`;
 
         const [newUser] = await db("players")
           .insert({
             provider_id: profile.id,
             email: profile.emails[0].value,
-            username: profile.displayName,
+            username: tempUsername,
             picture: profile.photos[0].value,
+            setup_complete: false,
           })
           .returning("*");
 

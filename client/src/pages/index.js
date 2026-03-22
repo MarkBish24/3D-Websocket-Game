@@ -7,6 +7,7 @@ import Profile from "./Profile.vue";
 import Friends from "./Friends.vue";
 import Settings from "./Settings.vue";
 import DesignTest from "../components/DesignTest.vue";
+import Onboarding from "./Onboarding.vue";
 
 export {
   Login,
@@ -18,4 +19,5 @@ export {
   Friends,
   Settings,
   DesignTest,
+  Onboarding,
 };

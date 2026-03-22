@@ -2,7 +2,11 @@
   <v-container class="fill-height">
     <v-row justify="center" align="center">
       <v-col cols="12" class="text-center">
-        <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+        <v-progress-circular
+          indeterminate
+          color="primary"
+          size="64"
+        ></v-progress-circular>
         <h2 class="mt-4">Completing Login...</h2>
       </v-col>
     </v-row>
@@ -44,8 +48,12 @@ onMounted(() => {
       };
 
       authStore.setAuth(user, token);
-      connectSocialSocket(token);
-      router.push("/");
+      if (!userData.setup_complete) {
+        router.push("/onboarding");
+      } else {
+        connectSocialSocket(token);
+        router.push("/");
+      }
     } catch (e) {
       console.error("Token decoding failed", e);
       router.push("/login");

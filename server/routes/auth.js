@@ -21,6 +21,7 @@ router.get(
         email: req.user.email,
         username: req.user.username,
         picture: req.user.picture,
+        setup_complete: req.user.setup_complete,
       },
       process.env.JWT_SECRET,
       {

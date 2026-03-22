@@ -9,6 +9,7 @@ import {
   Friends,
   Settings,
   DesignTest,
+  Onboarding,
 } from "../pages/index.js";
 
 const routes = [
@@ -21,6 +22,7 @@ const routes = [
   { path: "/friends", name: "Friends", component: Friends },
   { path: "/settings", name: "Settings", component: Settings },
   { path: "/design-test", name: "DesignTest", component: DesignTest },
+  { path: "/onboarding", name: "Onboarding", component: Onboarding },
 ];
 
 const router = createRouter({

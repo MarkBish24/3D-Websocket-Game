@@ -6,6 +6,8 @@ export const useChatStore = defineStore("chat", {
   state: () => ({
     messages: [],
     _listenersInitialized: false,
+    isChatOpen: false,
+    currentChatId: null,
   }),
   actions: {
     initSocketListeners() {

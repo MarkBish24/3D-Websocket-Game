@@ -4,6 +4,7 @@
       <router-view />
     </v-main>
     <ToastNotification />
+    <ChatWindow />
   </v-app>
 </template>
 
@@ -12,6 +13,7 @@ import { onMounted } from "vue";
 import { connectSocialSocket } from "./plugins/userSocket.js";
 import { useAuthStore } from "./stores/authStore.js";
 import ToastNotification from "./components/ToastNotification.vue";
+import ChatWindow from "./components/chatWindow.vue";
 
 const authStore = useAuthStore();
 

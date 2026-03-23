@@ -35,4 +35,33 @@ CREATE TABLE IF NOT EXISTS friendship_events(
 	actor_id INT NOT NULL REFERENCES players(id), -- who triggered this evenet
 	event VARCHAR(20) NOT NULL, -- 'requested', 'accepted', 'declined', 'blocked'
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
+);
+
+--------------------------------------
+-------- CHAT SYSTEM -----------------
+--------------------------------------
+
+CREATE TABLE IF NOT EXISTS chats (
+	id SERIAL PRIMARY KEY,
+	type VARCHAR(20) NOT NULL, -- 'private' or 'group'
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS chat_participants (
+	id SERIAL PRIMARY KEY,
+	chat_id INT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+	player_id INT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+	joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	
+	UNIQUE(chat_id, player_id)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+	id SERIAL PRIMARY KEY,
+	type VARCHAR(50) DEFAULT 'text', -- 'text', 'image', 'file', 'system'
+	chat_id INT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+	sender_id INT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+	content TEXT NOT NULL,
+	sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+

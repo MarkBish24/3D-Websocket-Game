@@ -4,4 +4,5 @@
 
 import "./server.js"; // start Express + Socket.io + DB
 import "./express/expressMain.js"; // register REST routes
-import "./sockets/socialSocket.js"; // register Socket.io events
+import "./sockets/socialSocket.js"; // register social Socket.io events
+import "./sockets/chatSocket.js"; // register chat Socket.io events

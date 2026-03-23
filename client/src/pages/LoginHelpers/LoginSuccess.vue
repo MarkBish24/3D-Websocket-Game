@@ -18,6 +18,7 @@ import { onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../../stores/authStore";
 import { connectSocialSocket } from "../../plugins/userSocket.js";
+import { connectChatSocket } from "../../plugins/chatSocket.js";
 
 const router = useRouter();
 const route = useRoute();
@@ -52,6 +53,7 @@ onMounted(() => {
         router.push("/onboarding");
       } else {
         connectSocialSocket(token);
+        connectChatSocket(token);
         router.push("/");
       }
     } catch (e) {

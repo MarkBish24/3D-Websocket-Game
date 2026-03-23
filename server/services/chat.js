@@ -4,7 +4,7 @@ import { db } from "../config/db.js";
 export const getChatHistory = async (chatId, limit = 50) => {
   return await db("v_chat_messages")
     .where({ chat_id: chatId })
-    .orderBy("sent_at", "desc")
+    .orderBy("sent_at", "asc")
     .limit(limit);
 };
 

@@ -37,7 +37,7 @@ chatNamespace.on("connect", (socket) => {
     chatNamespace.to(`chat_${chatId}`).emit("chat:message", {
       chatId,
       message,
-      senderId: user.id,
+      sender_id: user.id,
       senderUsername: user.username,
       timestamp: new Date().toISOString(),
     });

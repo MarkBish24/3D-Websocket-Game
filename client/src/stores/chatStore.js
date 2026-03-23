@@ -8,6 +8,7 @@ export const useChatStore = defineStore("chat", {
     _listenersInitialized: false,
     isChatOpen: false,
     currentChatId: null,
+    activeChatFriend: null,
   }),
   actions: {
     initSocketListeners() {
@@ -37,13 +38,15 @@ export const useChatStore = defineStore("chat", {
       if (!socket) return;
       socket.emit("chat:leave", chatId);
     },
-    async openChat(friendId) {
+    async openChat(friend) {
       try {
+        this.isChatOpen = true;
+        this.activeChatFriend = friend;
         const apiUrl = import.meta.env.VITE_API_URL || "";
 
         // get the officiaal true room ID from the new controller
         const response = await axios.get(
-          `${apiUrl}/api/chat/private/${friendId}`,
+          `${apiUrl}/api/chat/private/${friend.id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`, // adjust to how you store token
@@ -51,6 +54,7 @@ export const useChatStore = defineStore("chat", {
           },
         );
         const chatId = response.data.chatId;
+        this.currentChatId = chatId;
 
         // clear old messages and join the new chat room
         this.messages = [];

@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { disconnectSocialSocket } from "../plugins/userSocket.js";
+import { disconnectChatSocket } from "../plugins/chatSocket.js";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -26,6 +27,7 @@ export const useAuthStore = defineStore("auth", {
     },
     logout() {
       disconnectSocialSocket();
+      disconnectChatSocket();
       this.user = null;
       this.token = null;
       localStorage.removeItem("user");

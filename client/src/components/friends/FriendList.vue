@@ -34,6 +34,7 @@
               icon="mdi-message"
               variant="text"
               class="settings-btn"
+              @click="chatStore.openChat(friend)"
             ></v-btn>
           </template>
         </v-list-item>
@@ -76,20 +77,25 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import defaultAvatar from "../../assets/Blank-Avatar-Icon.webp";
 import { useFriendsStore } from "../../stores/friendsStore.js";
+import { useChatStore } from "../../stores/chatStore.js";
 
 const friends = ref([]);
 const friendsStore = useFriendsStore();
 const router = useRouter();
+const chatStore = useChatStore();
 
 const getFriends = async () => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/friends/list`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/friends/list`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       },
-    });
+    );
     const data = await response.json();
     friends.value = data;
   } catch (error) {

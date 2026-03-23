@@ -1,5 +1,6 @@
 import { io } from "../server.js";
 import { authenticateSocket } from "../middleware/middleware.js";
+import * as chatService from "../services/chat.js";
 
 // create the new namespace
 const chatNamespace = io.of("/chat");
@@ -29,11 +30,9 @@ chatNamespace.on("connect", (socket) => {
   });
 
   // handle incoming messages
-  socket.on("chat:message", (data) => {
+  socket.on("chat:message", async (data) => {
     const { chatId, message } = data;
-    console.log(
-      `User ${user.id} sent message to chat room ${chatId}: ${message}`,
-    );
+    await chatService.insertMessage(user.id, chatId, message);
 
     chatNamespace.to(`chat_${chatId}`).emit("chat:message", {
       chatId,
@@ -42,6 +41,10 @@ chatNamespace.on("connect", (socket) => {
       senderUsername: user.username,
       timestamp: new Date().toISOString(),
     });
+
+    console.log(
+      `User ${user.id} sent message to chat room ${chatId}: ${message}`,
+    );
   });
 
   socket.on("disconnect", () => {

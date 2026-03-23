@@ -27,3 +27,17 @@ export const insertMessage = async (req, res) => {
     res.status(500).json({ error: "Failed to insert message" });
   }
 };
+
+export const getOrCreatePrivateChat = async (req, res) => {
+  try {
+    // The Friend they want to talk to is in the UTL, and their own ID is inside the auth token
+    const friendId = req.params.friendId;
+    const userId = req.user.id;
+
+    const chatId = await chatService.getOrCreatePrivateChat(userId, friendId);
+    res.json({ chatId });
+  } catch (error) {
+    console.error("Error getting or creating private chat:", error);
+    res.status(500).json({ error: "Failed to get or create private chat" });
+  }
+};

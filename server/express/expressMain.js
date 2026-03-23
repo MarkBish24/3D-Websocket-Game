@@ -7,12 +7,14 @@ import playerRoutes from "../routes/players.js";
 import gameRoutes from "../routes/game.js";
 import authRoutes from "../routes/auth.js";
 import friendRoutes from "../routes/friends.js";
+import chatRoutes from "../routes/chat.js";
 
 // REST API routes
 app.use("/api/players", playerRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/friends", friendRoutes);
+app.use("/api/chat", chatRoutes);
 
 // Fallback — serve Vue SPA for any unmatched route
 import fs from "fs";

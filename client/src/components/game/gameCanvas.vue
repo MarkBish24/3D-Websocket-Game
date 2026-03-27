@@ -16,14 +16,58 @@ import { ref, onMounted, onUnmounted } from "vue";
 
 const gameCanvas = ref(null);
 let ctx = null;
+let animationFrameId = null;
+
+let camera = {
+  x: 0,
+  y: 0,
+  zoom: 1,
+};
+let isDragging = false;
+let lastMousePos = { x: 0, y: 0 };
 
 onMounted(() => {
   gameCanvas.value.width = window.innerWidth;
   gameCanvas.value.height = window.innerHeight;
   ctx = gameCanvas.value.getContext("2d");
   generateMap();
-  drawMap();
+  gameLoop();
 });
+
+onUnmounted(() => {
+  cancelAnimationFrame(animationFrameId);
+});
+
+const handleMouseMove = (e) => {
+  if (isDragging) {
+    camera.x += e.clientX - lastMousePos.x;
+    camera.y += e.clientY - lastMousePos.y;
+  }
+  lastMousePos = { x: e.clientX, y: e.clientY };
+};
+
+const handleMouseDown = (e) => {
+  isDragging = true;
+};
+
+const handleMouseUp = (e) => {
+  isDragging = false;
+};
+
+const handleMouseLeave = (e) => {
+  isDragging = false;
+};
+
+const handleWheel = (e) => {
+  e.preventDefault(); // prevents the whole browser from zooming
+
+  // Standard scroll behavior: scroll down (positive delta) = zoom out (-1).
+  const zoomDirection = e.deltaY > 0 ? -1 : 1;
+
+  // Using 0.05 gives you buttery smooth zooming instead of jumping massive chunks!
+  camera.zoom += zoomDirection * 0.02;
+  camera.zoom = Math.max(0.1, Math.min(5, camera.zoom)); // clamp zoom between 0.1x and 5x
+};
 
 // Game State
 const hexSize = 35; // pixel radius of each hexagon
@@ -76,22 +120,24 @@ const drawHex = (
   ctx.stroke();
 };
 
-const drawMap = () => {
+const gameLoop = () => {
   if (!ctx || !gameCanvas.value) return;
   ctx.clearRect(0, 0, gameCanvas.value.width, gameCanvas.value.height);
 
-  // center the map
-  const centerX = gameCanvas.value.width / 2;
-  const centerY = gameCanvas.value.height / 2;
+  ctx.save();
+  ctx.translate(
+    gameCanvas.value.width / 2 + camera.x,
+    gameCanvas.value.height / 2 + camera.y,
+  );
+  ctx.scale(camera.zoom, camera.zoom);
 
   hexes.forEach((hex) => {
     const pixel = hexToPixel(hex.q, hex.r, hexSize);
-    const center = {
-      x: centerX + pixel.x,
-      y: centerY + pixel.y,
-    };
-    drawHex(ctx, center, hexSize);
+    drawHex(ctx, pixel, hexSize - 1);
   });
+  ctx.restore();
+
+  animationFrameId = requestAnimationFrame(gameLoop);
 };
 </script>
 

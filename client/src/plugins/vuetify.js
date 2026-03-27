@@ -5,6 +5,7 @@ const customLightTheme = {
   colors: {
     background: "#F1F1F1",
     surface: "#FFFFFF",
+    surfaceVariant: "#F5F5F5",
     primary: "#1867C0",
     secondary: "#48A9A6",
     error: "#B00020",
@@ -19,6 +20,7 @@ const customDarkTheme = {
   colors: {
     background: "#1E1E1E",
     surface: "#2F2F2F",
+    surfaceVariant: "#4A4A4A",
     primary: "#2196F3",
     secondary: "#03DAC6",
     error: "#CF6679",
@@ -33,6 +35,7 @@ const testTheme = {
   colors: {
     background: "#f7f7E6",
     surface: "#f2e6c9",
+    surfaceVariant: "#FDF9F1",
     primary: "#3a5f8a",
     secondary: "#c59a3d",
     error: "#8e2c2c",
@@ -47,6 +50,7 @@ const testDarkTheme = {
   colors: {
     background: "#0c111d",
     surface: "#182230",
+    surfaceVariant: "#3D546F",
     primary: "#5c86b8",
     secondary: "#e0b455",
     error: "#b33c3c",

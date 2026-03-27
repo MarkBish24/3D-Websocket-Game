@@ -18,6 +18,7 @@ import { Hex } from "./Hex.js";
 const gameCanvas = ref(null);
 let ctx = null;
 let animationFrameId = null;
+let currentHoverHex = null; // Stores {q,r,s} of the hex currently being hovered
 
 let camera = {
   x: 0,
@@ -45,6 +46,25 @@ const handleMouseMove = (e) => {
     camera.y += e.clientY - lastMousePos.y;
   }
   lastMousePos = { x: e.clientX, y: e.clientY };
+
+  // Get the exact physical bounds of the canvas so CSS padding/Navbars don't break our mouse tracking!
+  const rect = gameCanvas.value.getBoundingClientRect();
+  const rawX = e.clientX - rect.left;
+  const rawY = e.clientY - rect.top;
+
+  // Correctly adjust for the camera zoom scale 
+  const mouseX = (rawX - gameCanvas.value.width / 2 - camera.x) / camera.zoom;
+  const mouseY = (rawY - gameCanvas.value.height / 2 - camera.y) / camera.zoom;
+
+  const hexCoords = pixelToHex(mouseX, mouseY);
+  const roundedHex = cubeRound(hexCoords);
+
+  currentHoverHex = roundedHex;
+
+  // IMPORTANT: Let the Hex objects themselves know if they are being hovered!
+  hexes.forEach((hex) => {
+    hex.isHovered = hex.q === roundedHex.q && hex.r === roundedHex.r;
+  });
 };
 
 const handleMouseDown = (e) => {
@@ -82,6 +102,33 @@ function hexToPixel(q, r, size = hexSize) {
   const y = size * ((3 / 2) * r);
   return { x, y };
 }
+
+function pixelToHex(x, y, size = hexSize) {
+  // mathematically, the 1/3 and 2/3 must be divided by the size explicitly!
+  const q = ((Math.sqrt(3) / 3) * x - (1 / 3) * y) / size;
+  const r = ((2 / 3) * y) / size;
+  const s = -q - r;
+  return { q, r, s };
+}
+
+const cubeRound = (frac) => {
+  let q = Math.round(frac.q);
+  let r = Math.round(frac.r);
+  let s = Math.round(frac.s);
+
+  const qDiff = Math.abs(q - frac.q);
+  const rDiff = Math.abs(r - frac.r);
+  const sDiff = Math.abs(s - frac.s);
+
+  if (qDiff > rDiff && qDiff > sDiff) {
+    q = -r - s;
+  } else if (rDiff > sDiff) {
+    r = -q - s;
+  } else {
+    s = -q - r;
+  }
+  return { q, r, s };
+};
 
 // 2. generate a perfectly smmetrical grid by looping cube contraints
 const generateMap = () => {
@@ -152,8 +199,8 @@ const gameLoop = () => {
 
   hexes.forEach((hex) => {
     const pixel = hexToPixel(hex.q, hex.r, hexSize);
-    // Overwrite the default color parameter with the hex object's specific color
-    drawHex(ctx, pixel, hexSize - 1, hex.color);
+    // Let the Hex object dynamically calculate its own color based on its internal state!
+    drawHex(ctx, pixel, hexSize - 1, hex.getRenderColor());
   });
   ctx.restore();
 

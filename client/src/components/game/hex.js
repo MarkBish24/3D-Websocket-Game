@@ -11,9 +11,18 @@ export class Hex {
     this.color = "#2f2f2f"; // Default fog of war Color
 
     // Future Mechanics
-    this.units = []; // Array of unit objects
-    this.isRevealed = false; // Whether the hex is revealed by a unit
-    this.isExplored = false; // Whether the hex has been explored by a unit
+    this.units = [];
+    this.isRevealed = false;
+    this.isExplored = false;
+    this.isHovered = false; // True when the mouse points directly here
+  }
+
+  // Returns exactly what color this tile should render as based on state
+  getRenderColor() {
+    if (this.isHovered) {
+      return "rgba(255, 255, 255, 0.4)"; // Hover highlight color
+    }
+    return this.color;
   }
 
   distanceTo(targetHex) {

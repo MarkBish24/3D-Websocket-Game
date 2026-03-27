@@ -13,6 +13,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
+import { Hex } from "./Hex.js";
 
 const gameCanvas = ref(null);
 let ctx = null;
@@ -90,7 +91,25 @@ const generateMap = () => {
 
     for (let r = r1; r <= r2; r++) {
       const s = -q - r;
-      hexes.push({ q, r, s });
+
+      // instantiate a new Hex object
+      const tile = new Hex(q, r, s);
+
+      // 2. Modify properties based on its position
+      if (r >= mapRadius - 2) {
+        tile.type = "spawn";
+        tile.owner = "blue";
+        tile.color = "rgba(60, 150, 255, 0.2)";
+      } else if (r <= -mapRadius + 2) {
+        tile.type = "spawn";
+        tile.owner = "red";
+        tile.color = "rgba(255, 80, 80, 0.2)";
+      } else if (q === 0 && r === 0 && s === 0) {
+        tile.type = "checkpoint";
+        tile.color = "rgba(255, 215, 0, 0.4)";
+      }
+      // 3. Push it!
+      hexes.push(tile);
     }
   }
 };
@@ -133,7 +152,8 @@ const gameLoop = () => {
 
   hexes.forEach((hex) => {
     const pixel = hexToPixel(hex.q, hex.r, hexSize);
-    drawHex(ctx, pixel, hexSize - 1);
+    // Overwrite the default color parameter with the hex object's specific color
+    drawHex(ctx, pixel, hexSize - 1, hex.color);
   });
   ctx.restore();
 

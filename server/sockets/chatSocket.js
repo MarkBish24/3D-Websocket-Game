@@ -15,18 +15,18 @@ chatNamespace.on("connect", (socket) => {
   }
 
   const user = socket.user;
-  console.log(`User ${user.id} connected to /chat`);
+  console.log(`[Chat] ${user.username}:${user.id} connected to /chat`);
 
   // Join a specific chat room by chatId
   socket.on("chat:join", (chatId) => {
     socket.join(`chat_${chatId}`);
-    console.log(`User ${user.id} joined chat room ${chatId}`);
+    console.log(`[Chat] ${user.username}:${user.id} joined chat room ${chatId}`);
   });
 
   // Leave a chat room
   socket.on("chat:leave", (chatId) => {
     socket.leave(`chat_${chatId}`);
-    console.log(`User ${user.id} left chat room ${chatId}`);
+    console.log(`[Chat] ${user.username}:${user.id} left chat room ${chatId}`);
   });
 
   // handle incoming messages
@@ -43,11 +43,11 @@ chatNamespace.on("connect", (socket) => {
     });
 
     console.log(
-      `User ${user.id} sent message to chat room ${chatId}: ${message}`,
+      `[Chat] ${user.username}:${user.id} sent message to chat room ${chatId}: ${message}`,
     );
   });
 
   socket.on("disconnect", () => {
-    console.log(`User ${user.id} disconnected from /chat`);
+    console.log(`[Chat] ${user.username}:${user.id} disconnected from /chat`);
   });
 });

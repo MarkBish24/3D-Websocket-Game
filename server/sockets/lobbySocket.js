@@ -22,7 +22,7 @@ lobbyNamespace.on("connect", (socket) => {
   }
 
   const user = socket.user;
-  console.log(`User ${user.id} connected to /lobby`);
+  console.log(`[Lobby] ${user.username}:${user.id} connected to /lobby`);
 
   // add user to the map
   usersInLobby.set(user.id, socket);
@@ -32,7 +32,7 @@ lobbyNamespace.on("connect", (socket) => {
 
   // handle disconnect
   socket.on("disconnect", () => {
-    console.log(`User ${user.id} disconnected from /lobby`);
+    console.log(`[Lobby] ${user.username}:${user.id} disconnected from /lobby`);
     usersInLobby.delete(user.id);
     lobbyNamespace.emit("lobby:users", Array.from(usersInLobby.keys()));
 
@@ -47,37 +47,51 @@ lobbyNamespace.on("connect", (socket) => {
   });
 
   socket.on("lobby:find_match", async () => {
-    console.log(`[Lobby] User ${user.id}:${user.username} pressed Find Match!`);
-    // IMPORTANT: Ignore the frontend's userId payload! 
+    console.log(`[Lobby] ${user.username}:${user.id} pressed Find Match!`);
+    // IMPORTANT: Ignore the frontend's userId payload!
     // Always use the securely authenticated user object from the middleware.
     const room = findOrCreateRoom(user.id, socket.id);
 
     // Make sure the socket actually joins the server room!
     socket.join(room.id);
-    console.log(`[Lobby] User ${user.id} joined socket.io room: ${room.id} (Players: ${room.players.length}/${room.maxPlayers})`);
+    console.log(
+      `[Lobby] ${user.username}:${user.id} joined socket.io room: ${room.id} (Players: ${room.players.length}/${room.maxPlayers})`,
+    );
 
     if (room.isFull()) {
-      console.log(`[Lobby] SUCCESS! Room ${room.id} is full! Emitting 'match_found' to both players!`);
+      console.log(
+        `[Lobby] SUCCESS! Room ${room.id} is full! Emitting 'match_found' to both players!`,
+      );
       lobbyNamespace.to(room.id).emit("lobby:match_found", room);
     } else {
-      console.log(`[Lobby] Room ${room.id} is waiting for an opponent. Emitting 'match_searching'...`);
+      console.log(
+        `[Lobby] Room ${room.id} is waiting for an opponent. Emitting 'match_searching'...`,
+      );
       socket.emit("lobby:match_searching", room);
     }
   });
 
   socket.on("lobby:leave", async () => {
-    console.log(`[Lobby] User ${user.id}:${user.username} pressed Cancel/Leave Match!`);
+    console.log(
+      `[Lobby] ${user.username}:${user.id} pressed Cancel/Leave Match!`,
+    );
     // Use the authenticated user context instead of the payload
     const room = leaveRoom(user.id);
 
     if (room) {
       socket.leave(room.id);
-      console.log(`[Lobby] User ${user.id} left socket.io room: ${room.id}`);
+      console.log(
+        `[Lobby] ${user.username}:${user.id} left socket.io room: ${room.id}`,
+      );
       if (!room.isEmpty()) {
-        console.log(`[Lobby] Room ${room.id} still has players. Alerting remaining players via 'match_left'...`);
+        console.log(
+          `[Lobby] Room ${room.id} still has players. Alerting remaining players via 'match_left'...`,
+        );
         lobbyNamespace.to(room.id).emit("lobby:match_left", room);
       } else {
-        console.log(`[Lobby] Room ${room.id} is now empty and has been disbanded.`);
+        console.log(
+          `[Lobby] Room ${room.id} is now empty and has been disbanded.`,
+        );
       }
     }
   });

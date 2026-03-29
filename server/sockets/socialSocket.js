@@ -56,7 +56,7 @@ socialNamespace.on("connect", async (socket) => {
         public: player.public,
       });
     }
-    console.log(`User ${user.id}:${user.username} is now online`);
+    console.log(`[Social] ${user.username}:${user.id} is now online`);
   }
 
   socket.on("disconnect", () => {
@@ -67,7 +67,7 @@ socialNamespace.on("connect", async (socket) => {
       for (const friend of onlineFriends) {
         socialNamespace.to(`user:${friend.id}`).emit("friend:offline", user.id);
       }
-      console.log(`User ${user.id}:${user.username} is now offline`);
+      console.log(`[Social] ${user.username}:${user.id} is now offline`);
     }
   });
 });

@@ -62,21 +62,36 @@ const handleMouseMove = (e) => {
   currentHoverHex = roundedHex;
 
   // IMPORTANT: Let the Hex objects themselves know if they are being hovered!
+  let isHoveringValidHex = false;
   hexes.forEach((hex) => {
     hex.isHovered = hex.q === roundedHex.q && hex.r === roundedHex.r;
+    if (hex.isHovered) isHoveringValidHex = true;
   });
+
+  // Dynamically update the mouse cursor so players know they can click!
+  if (isDragging) {
+    gameCanvas.value.style.cursor = "grabbing";
+  } else if (isHoveringValidHex) {
+    gameCanvas.value.style.cursor = "pointer";
+  } else {
+    gameCanvas.value.style.cursor = "grab"; // Empty space background
+  }
 };
 
 const handleMouseDown = (e) => {
   isDragging = true;
+  if (gameCanvas.value) gameCanvas.value.style.cursor = "grabbing";
 };
 
 const handleMouseUp = (e) => {
   isDragging = false;
+  // Fall back to pointer check via movement or grab by default when released
+  if (gameCanvas.value) gameCanvas.value.style.cursor = "grab";
 };
 
 const handleMouseLeave = (e) => {
   isDragging = false;
+  if (gameCanvas.value) gameCanvas.value.style.cursor = "grab";
 };
 
 const handleWheel = (e) => {

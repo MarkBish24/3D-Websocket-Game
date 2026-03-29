@@ -1,0 +1,65 @@
+<template>
+  <v-row class="mb-4">
+    <!-- Player 1 (Creator) -->
+    <v-col cols="6">
+      <v-card class="bg-grey-darken-4 text-center pb-2 elevation-3 rounded-lg">
+        <v-card-title class="text-primary font-weight-bold">
+          {{ player1 ? player1.username : "Loading..." }}
+        </v-card-title>
+        <v-avatar size="64" class="mb-2 border-primary border-sm">
+          <v-img :src="player1?.picture || 'https://cdn.vuetifyjs.com/images/john.jpg'"></v-img>
+        </v-avatar>
+      </v-card>
+    </v-col>
+
+    <!-- Player 2 (Challenger) -->
+    <v-col cols="6">
+      <v-card class="bg-grey-darken-4 text-center pb-2 elevation-3 rounded-lg">
+        <v-card-title class="text-error font-weight-bold">
+          {{ player2 ? player2.username : "Loading..." }}
+        </v-card-title>
+        <v-avatar size="64" class="mb-2 border-error border-sm">
+          <v-img :src="player2?.picture || 'https://cdn.vuetifyjs.com/images/john.jpg'"></v-img>
+        </v-avatar>
+      </v-card>
+    </v-col>
+  </v-row>
+</template>
+
+<script setup>
+import { useLobbyStore } from "../../stores/lobbyStore.js";
+import { ref, onMounted } from "vue";
+const lobbyStore = useLobbyStore();
+const player1 = ref(null);
+const player2 = ref(null);
+
+const fetchPlayer = async (userId) => {
+  if (!userId) return null;
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/players/${userId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      },
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching player:", error);
+    return null;
+  }
+};
+
+onMounted(async () => {
+  const room = lobbyStore.currentRoom;
+  if (room && room.players.length >= 2) {
+    // Await the promises so we actually store the user object, not a pending Promise!
+    player1.value = await fetchPlayer(room.players[0].userId);
+    player2.value = await fetchPlayer(room.players[1].userId);
+  }
+});
+</script>

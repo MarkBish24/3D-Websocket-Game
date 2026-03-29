@@ -7,3 +7,4 @@ import "./express/expressMain.js"; // register REST routes
 import "./sockets/socialSocket.js"; // register social Socket.io events
 import "./sockets/chatSocket.js"; // register chat Socket.io events
 import "./sockets/lobbySocket.js"; // register matchmaking Socket.io events
+import "./sockets/gameSocket.js";  // register game Socket.io events

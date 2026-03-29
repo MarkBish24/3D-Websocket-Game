@@ -12,8 +12,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
-import { Hex } from "./Hex.js";
+import { ref, onMounted, onUnmounted, watch } from "vue";
+import { useGameStore } from "../../stores/gameStore.js";
+import { Hex } from "./hex.js";
+
+const gameStore = useGameStore();
 
 const gameCanvas = ref(null);
 let ctx = null;
@@ -32,8 +35,16 @@ onMounted(() => {
   gameCanvas.value.width = window.innerWidth;
   gameCanvas.value.height = window.innerHeight;
   ctx = gameCanvas.value.getContext("2d");
-  generateMap();
   gameLoop();
+
+  // Reactively rebuild the hex map whenever the server sends board data
+  watch(
+    () => gameStore.currentRoom?.board?.hexes,
+    (hexes) => {
+      if (hexes) loadMap();
+    },
+    { immediate: true }
+  );
 });
 
 onUnmounted(() => {
@@ -52,7 +63,7 @@ const handleMouseMove = (e) => {
   const rawX = e.clientX - rect.left;
   const rawY = e.clientY - rect.top;
 
-  // Correctly adjust for the camera zoom scale 
+  // Correctly adjust for the camera zoom scale
   const mouseX = (rawX - gameCanvas.value.width / 2 - camera.x) / camera.zoom;
   const mouseY = (rawY - gameCanvas.value.height / 2 - camera.y) / camera.zoom;
 
@@ -107,7 +118,6 @@ const handleWheel = (e) => {
 
 // Game State
 const hexSize = 35; // pixel radius of each hexagon
-const mapRadius = 8; // number of rings outward from the center
 
 const hexes = []; // array to store the generated hex coordinates {q,r,s}
 
@@ -146,34 +156,14 @@ const cubeRound = (frac) => {
 };
 
 // 2. generate a perfectly smmetrical grid by looping cube contraints
-const generateMap = () => {
-  for (let q = -mapRadius; q <= mapRadius; q++) {
-    const r1 = Math.max(-mapRadius, -q - mapRadius);
-    const r2 = Math.min(mapRadius, -q + mapRadius);
+const loadMap = () => {
+  const boardData = gameStore.currentRoom?.board?.hexes ?? [];
 
-    for (let r = r1; r <= r2; r++) {
-      const s = -q - r;
+  hexes.length = 0;
 
-      // instantiate a new Hex object
-      const tile = new Hex(q, r, s);
-
-      // 2. Modify properties based on its position
-      if (r >= mapRadius - 2) {
-        tile.type = "spawn";
-        tile.owner = "blue";
-        tile.color = "rgba(60, 150, 255, 0.2)";
-      } else if (r <= -mapRadius + 2) {
-        tile.type = "spawn";
-        tile.owner = "red";
-        tile.color = "rgba(255, 80, 80, 0.2)";
-      } else if (q === 0 && r === 0 && s === 0) {
-        tile.type = "checkpoint";
-        tile.color = "rgba(255, 215, 0, 0.4)";
-      }
-      // 3. Push it!
-      hexes.push(tile);
-    }
-  }
+  boardData.forEach((hexData) => {
+    hexes.push(new Hex(hexData));
+  });
 };
 
 // 3. physically draw 6 lines to form a hexagon

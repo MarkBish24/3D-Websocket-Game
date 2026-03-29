@@ -1,6 +1,6 @@
 import { io } from "../server.js";
 import { authenticateSocket } from "../middleware/middleware.js";
-import { resolveTurn } from "../game/gameLogic.js";
+import { resolveTurn, GameState } from "../game/index.js";
 
 const gameNamespace = io.of("/game");
 
@@ -32,8 +32,16 @@ gameNamespace.on("connect", (socket) => {
     socket.join(`room:${roomId}`);
     console.log(`[Game] ${user.username}:${user.id} joined room ${roomId}`);
 
-    // let the joining client know they're in the room
-    socket.emit("game:joined", roomId);
+    // Fetch the active GameState, add the player
+    const matchData = getOrCreateGame(roomId);
+    matchData.addPlayer(user);
+
+    // Send the joining client the full game state payload (including the Hex map!)
+    socket.emit("game:state_sync", {
+      roomId,
+      matchData: matchData.serialize(),
+      message: "Game synchronized"
+    });
 
     // Notify the other player in the room (if already connected)
     socket.to(`room:${roomId}`).emit("game:opponent_joined", { user: user });
@@ -42,7 +50,6 @@ gameNamespace.on("connect", (socket) => {
   socket.on("disconnect", () => {
     console.log(`[Game] ${user.username}:${user.id} disconnected from /game`);
   });
-
   //--------------------------------------------------------------------
   // __________Some of the Actiona a player can do in the game
   //--------------------------------------------------------------------
@@ -69,7 +76,7 @@ gameNamespace.on("connect", (socket) => {
     if (!pendingTurns[roomId]) {
       pendingTurns[roomId] = {};
     }
-    
+
     // record this player's submitted turn
     pendingTurns[roomId][user.id] = turnData;
     console.log(
@@ -95,16 +102,23 @@ gameNamespace.on("connect", (socket) => {
       const resolvedTurn = resolveTurn(pendingTurns[roomId]);
 
       // emit the resolved turn to all players in the room
-      gameNamespace
-        .to(`room:${roomId}`)
-        .emit("game:turn_processed", {
-          roomId,
-          resolvedTurn,
-          submittedTurns: pendingTurns[roomId],
-        });
+      gameNamespace.to(`room:${roomId}`).emit("game:turn_processed", {
+        roomId,
+        resolvedTurn,
+        submittedTurns: pendingTurns[roomId],
+      });
 
       // clear pending turns for this room
       delete pendingTurns[roomId];
     }
   });
 });
+
+export const activeGames = new Map();
+
+export function getOrCreateGame(roomId) {
+  if (!activeGames.has(roomId)) {
+    activeGames.set(roomId, new GameState(roomId));
+  }
+  return activeGames.get(roomId);
+}

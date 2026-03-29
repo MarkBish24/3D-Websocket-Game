@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { getLobbySocket } from "../plugins/lobbySocket.js";
+import { getGameSocket } from "../plugins/gameSocket.js";
 
 export const useLobbyStore = defineStore("lobby", {
   state: () => ({
@@ -16,6 +17,12 @@ export const useLobbyStore = defineStore("lobby", {
       socket.on("lobby:match_found", (room) => {
         this.isSearching = false;
         this.currentRoom = room;
+
+        // Transition to the game namespace immediately!
+        const gameSocket = getGameSocket();
+        if (gameSocket && room.id) {
+          gameSocket.emit("game:join", room.id);
+        }
       });
 
       socket.on("lobby:match_searching", (room) => {

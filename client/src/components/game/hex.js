@@ -1,19 +1,18 @@
 export class Hex {
-  constructor(q, r, s) {
+  constructor(serverData) {
     // math coordinates
-    this.q = q;
-    this.r = r;
-    this.s = s;
+    this.q = serverData.q;
+    this.r = serverData.r;
+    this.s = serverData.s;
 
     // metadata properties
-    this.type = "basic"; // 'spawn', 'checkpoint', 'goal', 'obstacle'
-    this.owner = null; // 'red', 'blue'
-    this.color = "#2f2f2f"; // Default fog of war Color
+    this.type = serverData.type ?? "basic"; // 'spawn', 'checkpoint', 'goal', 'obstacle'
+    this.owner = serverData.owner ?? null; // 'red', 'blue', null
 
     // Future Mechanics
-    this.units = [];
-    this.isRevealed = false;
-    this.isExplored = false;
+    this.units = serverData.units ?? [];
+    this.isRevealed = serverData.isRevealed;
+    this.isExplored = serverData.isExplored;
     this.isHovered = false; // True when the mouse points directly here
   }
 
@@ -22,7 +21,32 @@ export class Hex {
     if (this.isHovered) {
       return "rgba(255, 255, 255, 0.4)"; // Hover highlight color
     }
-    return this.color;
+
+    // 2. Unrevealed tiles are fog of war
+    if (!this.isRevealed) {
+      return "#2f2f2f";
+    }
+
+    // 3. Type-based colors (spawn zones use owner to pick team color)
+    switch (this.type) {
+      case "spawn":
+        // Owner is set by the server — no need to hard-code which hex is red/blue
+        if (this.owner === "red") return "#c0392b";
+        if (this.owner === "blue") return "#2980b9";
+        return "#7f8c8d"; // spawn with no owner yet (lobby/pre-game)
+
+      case "checkpoint":
+        return "#8e44ad";
+      case "goal":
+        return "#f39c12";
+      case "obstacle":
+        return "#1a1a1a";
+
+      // 4. Explored but ordinary tile
+      case "basic":
+      default:
+        return this.isExplored ? "#4a4a4a" : "#2f2f2f";
+    }
   }
 
   distanceTo(targetHex) {

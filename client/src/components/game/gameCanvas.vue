@@ -21,8 +21,9 @@ const gameStore = useGameStore();
 const gameCanvas = ref(null);
 let ctx = null;
 let animationFrameId = null;
-let currentHoverHex = null; // Stores {q,r,s} of the hex currently being hovered
-
+const hexMap = new Map(); // Map for O(1) hex lookups: "q,r,s" -> hex object
+let hoveredHexObj = null; // Reference to directly modify hovered state
+let selectedHexObj = null; // Reference to directly modify selected state
 let camera = {
   x: 0,
   y: 0,
@@ -52,8 +53,11 @@ onUnmounted(() => {
   cancelAnimationFrame(animationFrameId);
 });
 
+let dragHasMoved = false;
+
 const handleMouseMove = (e) => {
   if (isDragging) {
+    dragHasMoved = true;
     camera.x += e.clientX - lastMousePos.x;
     camera.y += e.clientY - lastMousePos.y;
   }
@@ -71,19 +75,19 @@ const handleMouseMove = (e) => {
   const hexCoords = pixelToHex(mouseX, mouseY);
   const roundedHex = cubeRound(hexCoords);
 
-  currentHoverHex = roundedHex;
-
-  // IMPORTANT: Let the Hex objects themselves know if they are being hovered!
-  let isHoveringValidHex = false;
-  hexes.forEach((hex) => {
-    hex.isHovered = hex.q === roundedHex.q && hex.r === roundedHex.r;
-    if (hex.isHovered) isHoveringValidHex = true;
-  });
+  const targetHex = hexMap.get(`${roundedHex.q},${roundedHex.r},${roundedHex.s}`);
+  
+  // O(1) Hover State Update!
+  if (hoveredHexObj !== targetHex) {
+    if (hoveredHexObj) hoveredHexObj.isHovered = false;
+    hoveredHexObj = targetHex || null;
+    if (hoveredHexObj) hoveredHexObj.isHovered = true;
+  }
 
   // Dynamically update the mouse cursor so players know they can click!
   if (isDragging) {
     gameCanvas.value.style.cursor = "grabbing";
-  } else if (isHoveringValidHex) {
+  } else if (hoveredHexObj) {
     gameCanvas.value.style.cursor = "pointer";
   } else {
     gameCanvas.value.style.cursor = "grab"; // Empty space background
@@ -92,11 +96,41 @@ const handleMouseMove = (e) => {
 
 const handleMouseDown = (e) => {
   isDragging = true;
+  dragHasMoved = false;
   if (gameCanvas.value) gameCanvas.value.style.cursor = "grabbing";
+};
+
+const changeSelectedHex = (newHex) => {
+  if (selectedHexObj === newHex) {
+    // If clicking the already selected hex, toggle it off
+    selectedHexObj.isSelected = false;
+    selectedHexObj = null;
+    return;
+  }
+  
+  if (selectedHexObj) {
+    selectedHexObj.isSelected = false; // Deselect the old one
+  }
+  
+  selectedHexObj = newHex;
+  
+  if (selectedHexObj) {
+    selectedHexObj.isSelected = true; // Select the new one
+  }
 };
 
 const handleMouseUp = (e) => {
   isDragging = false;
+  
+  // Handle O(1) click selection if the mouse wasn't dragged
+  if (!dragHasMoved) {
+    if (hoveredHexObj) {
+      changeSelectedHex(hoveredHexObj);
+    } else {
+      changeSelectedHex(null); // Clicked in empty space
+    }
+  }
+
   // Fall back to pointer check via movement or grab by default when released
   if (gameCanvas.value) gameCanvas.value.style.cursor = "grab";
 };
@@ -161,9 +195,12 @@ const loadMap = () => {
   const boardData = gameStore.currentRoom?.board?.hexes ?? [];
 
   hexes.length = 0;
+  hexMap.clear();
 
   boardData.forEach((hexData) => {
-    hexes.push(new Hex(hexData));
+    const hex = new Hex(hexData);
+    hexes.push(hex);
+    hexMap.set(`${hex.q},${hex.r},${hex.s}`, hex);
   });
 };
 
@@ -203,10 +240,24 @@ const gameLoop = () => {
   );
   ctx.scale(camera.zoom, camera.zoom);
 
+  const time = performance.now();
+
   hexes.forEach((hex) => {
     const pixel = hexToPixel(hex.q, hex.r, hexSize);
+    let renderSize = hexSize - 1;
+    
+    // Apply a subtle floating or bobbing animation for hovered and selected states
+    if (hex.isSelected) {
+      // Bobbing effect up and down
+      pixel.y += Math.sin(time / 200) * 3;
+      renderSize = hexSize; // Slightly larger
+    } else if (hex.isHovered) {
+      // Very slight bobbing for hovered
+      pixel.y += Math.sin(time / 150) * 1.5;
+    }
+
     // Let the Hex object dynamically calculate its own color based on its internal state!
-    drawHex(ctx, pixel, hexSize - 1, hex.getRenderColor());
+    drawHex(ctx, pixel, renderSize, hex.getRenderColor());
   });
   ctx.restore();
 

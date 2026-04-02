@@ -14,10 +14,14 @@ export class Hex {
     this.isRevealed = serverData.isRevealed;
     this.isExplored = serverData.isExplored;
     this.isHovered = false; // True when the mouse points directly here
+    this.isSelected = false; // True when user clicks the tile
   }
 
   // Returns exactly what color this tile should render as based on state
   getRenderColor() {
+    if (this.isSelected) {
+      return "rgba(123, 208, 224, 0.4)"; // Selected highlight color
+    }
     if (this.isHovered) {
       return "rgba(255, 255, 255, 0.4)"; // Hover highlight color
     }
@@ -56,5 +60,21 @@ export class Hex {
         Math.abs(this.s - targetHex.s)) /
       2
     );
+  }
+
+  toggleSelected() {
+    this.isSelected = !this.isSelected;
+  }
+
+  toggleHovered() {
+    this.isHovered = !this.isHovered;
+  }
+
+  getHoveredStatus() {
+    return this.isHovered;
+  }
+
+  getSelectedStatus() {
+    return this.isSelected;
   }
 }

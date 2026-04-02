@@ -75,7 +75,7 @@ const handleMouseMove = (e) => {
   const roundedHex = cubeRound(hexCoords);
 
   const targetHex = grid.getHex(roundedHex.q, roundedHex.r) || null;
-  
+
   // O(1) Hover State Update!
   if (grid.getHoveredHex() !== targetHex) {
     grid.toggleHoveredHex(targetHex);
@@ -99,7 +99,7 @@ const handleMouseDown = (e) => {
 
 const handleMouseUp = (e) => {
   isDragging = false;
-  
+
   // Handle O(1) click selection if the mouse wasn't dragged
   if (!dragHasMoved) {
     grid.toggleSelectedHex(grid.getHoveredHex());
@@ -200,6 +200,9 @@ const drawHex = (
   ctx.stroke();
 };
 
+const HEX_GRADIENT_SPEED = 1.5;
+const HEX_GRADIENT_AMPLITUDE = 1.2;
+
 const gameLoop = () => {
   if (!ctx || !gameCanvas.value) return;
   ctx.clearRect(0, 0, gameCanvas.value.width, gameCanvas.value.height);
@@ -213,22 +216,65 @@ const gameLoop = () => {
 
   const time = performance.now();
 
-  for (const hex of grid.getHexes()) {
-    const pixel = hexToPixel(hex.q, hex.r, hexSize);
-    let renderSize = hexSize - 1;
-    
-    // Apply a subtle floating or bobbing animation for hovered and selected states
-    if (hex.isSelected) {
-      // Bobbing effect up and down
-      pixel.y += Math.sin(time / 200) * 3;
-      renderSize = hexSize; // Slightly larger
-    } else if (hex.isHovered) {
-      // Very slight bobbing for hovered
-      pixel.y += Math.sin(time / 150) * 1.5;
-    }
+  const selectedHex = grid.getSelectedHex();
+  const hoveredHex = grid.getHoveredHex();
 
-    // Let the Hex object dynamically calculate its own color based on its internal state!
-    drawHex(ctx, pixel, renderSize, hex.getRenderColor());
+  // 1. Draw the base map first (skip the active hexes)
+  for (const hex of grid.getHexes()) {
+    if (hex === selectedHex || hex === hoveredHex) continue;
+
+    const pixel = hexToPixel(hex.q, hex.r, hexSize);
+    drawHex(ctx, pixel, hexSize - 1, hex.getRenderColor());
+  }
+
+  // 2. Draw Hovered Hex Second (renders on top of the map)
+  if (hoveredHex && hoveredHex !== selectedHex) {
+    const pixel = hexToPixel(hoveredHex.q, hoveredHex.r, hexSize);
+    const renderSize =
+      hexSize -
+      1 +
+      Math.sin(time / (150 * HEX_GRADIENT_SPEED)) * HEX_GRADIENT_AMPLITUDE; // slight pulsing scale
+    drawHex(ctx, pixel, renderSize, hoveredHex.getRenderColor());
+  }
+
+  // 3. Draw Selected Hex Last (renders on top of everything)
+  if (selectedHex) {
+    const pixel = hexToPixel(selectedHex.q, selectedHex.r, hexSize);
+    const renderSize =
+      hexSize + Math.sin(time / (200 * HEX_GRADIENT_SPEED)) * 3; // dramatic pulsing scale
+
+    // Draw the base selected hex first using its standard physical color
+    drawHex(ctx, pixel, renderSize, selectedHex.getRenderColor());
+
+    // The physical scale bounces on Math.sin(time / 200).
+    // The exact duration of one sine wave cycle is 2*PI. (400 * Math.PI = ~1256ms)
+    const cycleTime = 400 * Math.PI * HEX_GRADIENT_SPEED;
+
+    // Calculate a continuous tracker from 0.0 -> 1.0 that strictly flows outwards!
+    const rhythmProgress = (time % cycleTime) / cycleTime;
+
+    // Draw an expanding hexagonal wave! HTML5 Canvas doesn't have "hex gradients"
+    // So we mathematically draw 3 layers of glowing hex borders to fake a thick wave band
+    for (let i = 0; i < 3; i++) {
+      // Stagger the rings slightly. Wrapping negative values to +1.0 ensures
+      // the fading trail from the previous wave completely exits the edge instead of abruptly vanishing
+      let ringProgress = rhythmProgress - i * 0.15;
+      if (ringProgress < 0) ringProgress += 1.0;
+
+      const ringSize = renderSize * ringProgress;
+
+      // Opacity naturally flows from bright in the center to invisible flat at the edge
+      const edgeFade = Math.max(0, 1 - ringProgress);
+      // The master ring (i=0) is brightest, trailing rings are heavily dimmed
+      const ringGlowAlpha = (0.9 - i * 0.4) * edgeFade;
+
+      if (ringGlowAlpha > 0 && ringSize > 0) {
+        const strokeGlow = `rgba(150, 240, 255, ${ringGlowAlpha})`;
+        const fillGlow = `rgba(150, 240, 255, ${ringGlowAlpha * 0.15})`; // slight interior glow
+
+        drawHex(ctx, pixel, ringSize, fillGlow, strokeGlow);
+      }
+    }
   }
   ctx.restore();
 

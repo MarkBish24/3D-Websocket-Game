@@ -17,40 +17,44 @@ export class Hex {
     this.isSelected = false; // True when user clicks the tile
   }
 
-  // Returns exactly what color this tile should render as based on state
-  getRenderColor() {
-    if (this.isSelected) {
-      return "rgba(123, 208, 224, 0.4)"; // Selected highlight color
-    }
-    if (this.isHovered) {
-      return "rgba(255, 255, 255, 0.4)"; // Hover highlight color
-    }
+  // Returns the raw RGB literal string based purely on the internal state
+  getBaseRGB() {
+    if (this.isSelected) return "123, 208, 224"; // Selected highlight color
+    if (this.isHovered) return "255, 255, 255"; // Hover highlight color
 
     // 2. Unrevealed tiles are fog of war
-    if (!this.isRevealed) {
-      return "#2f2f2f";
-    }
+    if (!this.isRevealed) return "47, 47, 47"; // #2f2f2f
 
     // 3. Type-based colors (spawn zones use owner to pick team color)
     switch (this.type) {
       case "spawn":
         // Owner is set by the server — no need to hard-code which hex is red/blue
-        if (this.owner === "red") return "#c0392b";
-        if (this.owner === "blue") return "#2980b9";
-        return "#7f8c8d"; // spawn with no owner yet (lobby/pre-game)
+        if (this.owner === "red") return "192, 57, 43"; // #c0392b
+        if (this.owner === "blue") return "41, 128, 185"; // #2980b9
+        return "127, 140, 141"; // #7f8c8d (spawn with no owner yet)
 
       case "checkpoint":
-        return "#8e44ad";
+        return "142, 68, 173"; // #8e44ad
       case "goal":
-        return "#f39c12";
+        return "243, 156, 18"; // #f39c12
       case "obstacle":
-        return "#1a1a1a";
+        return "26, 26, 26"; // #1a1a1a
 
       // 4. Explored but ordinary tile
       case "basic":
       default:
-        return this.isExplored ? "#4a4a4a" : "#2f2f2f";
+        return this.isExplored ? "74, 74, 74" : "47, 47, 47"; // #4a4a4a : #2f2f2f
     }
+  }
+
+  // Returns exactly what color this tile should render as based on state
+  getRenderColor() {
+    return `rgba(${this.getBaseRGB()}, 0.5)`; // Semi-transparent glass fill
+  }
+
+  // Returns exactly what color the outline of this tile should render as
+  getStrokeColor() {
+    return `rgba(${this.getBaseRGB()}, 1.0)`; // Bright solid neon outline
   }
 
   distanceTo(targetHex) {

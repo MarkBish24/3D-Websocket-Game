@@ -181,7 +181,7 @@ const drawHex = (
   center,
   size,
   color = "#2f2f2f",
-  strokeColor = "#3f3f3f",
+  strokeColor = color, // Default the stroke to precisely match the fill if unmodified
 ) => {
   ctx.beginPath();
   for (let i = 0; i < 6; i++) {
@@ -224,7 +224,7 @@ const gameLoop = () => {
     if (hex === selectedHex || hex === hoveredHex) continue;
 
     const pixel = hexToPixel(hex.q, hex.r, hexSize);
-    drawHex(ctx, pixel, hexSize - 1, hex.getRenderColor());
+    drawHex(ctx, pixel, hexSize - 1, hex.getRenderColor(), hex.getStrokeColor());
   }
 
   // 2. Draw Hovered Hex Second (renders on top of the map)
@@ -244,7 +244,7 @@ const gameLoop = () => {
       hexSize + Math.sin(time / (200 * HEX_GRADIENT_SPEED)) * 3; // dramatic pulsing scale
 
     // Draw the base selected hex first using its standard physical color
-    drawHex(ctx, pixel, renderSize, selectedHex.getRenderColor());
+    drawHex(ctx, pixel, renderSize, selectedHex.getRenderColor(), selectedHex.getStrokeColor());
 
     // The physical scale bounces on Math.sin(time / 200).
     // The exact duration of one sine wave cycle is 2*PI. (400 * Math.PI = ~1256ms)

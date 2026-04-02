@@ -26,6 +26,21 @@ export class Hex {
     );
   }
 
+  neighbors() {
+    const directions = [
+      [+1, -1, 0],
+      [+1, 0, -1],
+      [0, +1, -1],
+      [-1, +1, 0],
+      [-1, 0, +1],
+      [0, -1, +1],
+    ];
+
+    return directions.map(([dq, dr, ds]) => {
+      return new Hex(this.q + dq, this.r + dr, this.s + ds);
+    });
+  }
+
   serialize() {
     return {
       q: this.q,

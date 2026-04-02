@@ -32,8 +32,9 @@ let isDragging = false;
 let lastMousePos = { x: 0, y: 0 };
 
 onMounted(() => {
-  gameCanvas.value.width = window.innerWidth;
-  gameCanvas.value.height = window.innerHeight;
+  gameCanvas.value.width = window.innerWidth / 2;
+  gameCanvas.value.height = window.innerHeight / 2;
+  gameCanvas.value.style.backgroundColor = "#000000";
   ctx = gameCanvas.value.getContext("2d");
   gameLoop();
 
@@ -43,7 +44,7 @@ onMounted(() => {
     (hexes) => {
       if (hexes) loadMap();
     },
-    { immediate: true }
+    { immediate: true },
   );
 });
 

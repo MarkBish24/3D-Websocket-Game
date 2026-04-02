@@ -3,7 +3,7 @@ import { HexGrid } from "../entities/hexGrid.js";
 export class GameState {
   constructor(roomId) {
     this.roomId = roomId;
-    this.board = new HexGrid(8);
+    this.board = new HexGrid();
     this.players = new Map();
     this.status = "waiting";
     this.turnNumber = 1;

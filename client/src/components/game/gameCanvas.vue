@@ -15,15 +15,14 @@
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useGameStore } from "../../stores/gameStore.js";
 import { Hex } from "./hex.js";
+import { HexGrid } from "./hexGrid.js";
 
 const gameStore = useGameStore();
 
 const gameCanvas = ref(null);
 let ctx = null;
 let animationFrameId = null;
-const hexMap = new Map(); // Map for O(1) hex lookups: "q,r,s" -> hex object
-let hoveredHexObj = null; // Reference to directly modify hovered state
-let selectedHexObj = null; // Reference to directly modify selected state
+const grid = new HexGrid();
 let camera = {
   x: 0,
   y: 0,
@@ -75,19 +74,17 @@ const handleMouseMove = (e) => {
   const hexCoords = pixelToHex(mouseX, mouseY);
   const roundedHex = cubeRound(hexCoords);
 
-  const targetHex = hexMap.get(`${roundedHex.q},${roundedHex.r},${roundedHex.s}`);
+  const targetHex = grid.getHex(roundedHex.q, roundedHex.r) || null;
   
   // O(1) Hover State Update!
-  if (hoveredHexObj !== targetHex) {
-    if (hoveredHexObj) hoveredHexObj.isHovered = false;
-    hoveredHexObj = targetHex || null;
-    if (hoveredHexObj) hoveredHexObj.isHovered = true;
+  if (grid.getHoveredHex() !== targetHex) {
+    grid.toggleHoveredHex(targetHex);
   }
 
   // Dynamically update the mouse cursor so players know they can click!
   if (isDragging) {
     gameCanvas.value.style.cursor = "grabbing";
-  } else if (hoveredHexObj) {
+  } else if (grid.getHoveredHex()) {
     gameCanvas.value.style.cursor = "pointer";
   } else {
     gameCanvas.value.style.cursor = "grab"; // Empty space background
@@ -100,35 +97,12 @@ const handleMouseDown = (e) => {
   if (gameCanvas.value) gameCanvas.value.style.cursor = "grabbing";
 };
 
-const changeSelectedHex = (newHex) => {
-  if (selectedHexObj === newHex) {
-    // If clicking the already selected hex, toggle it off
-    selectedHexObj.isSelected = false;
-    selectedHexObj = null;
-    return;
-  }
-  
-  if (selectedHexObj) {
-    selectedHexObj.isSelected = false; // Deselect the old one
-  }
-  
-  selectedHexObj = newHex;
-  
-  if (selectedHexObj) {
-    selectedHexObj.isSelected = true; // Select the new one
-  }
-};
-
 const handleMouseUp = (e) => {
   isDragging = false;
   
   // Handle O(1) click selection if the mouse wasn't dragged
   if (!dragHasMoved) {
-    if (hoveredHexObj) {
-      changeSelectedHex(hoveredHexObj);
-    } else {
-      changeSelectedHex(null); // Clicked in empty space
-    }
+    grid.toggleSelectedHex(grid.getHoveredHex());
   }
 
   // Fall back to pointer check via movement or grab by default when released
@@ -153,8 +127,6 @@ const handleWheel = (e) => {
 
 // Game State
 const hexSize = 35; // pixel radius of each hexagon
-
-const hexes = []; // array to store the generated hex coordinates {q,r,s}
 
 // 1. convert math coordinates (q, r) to physical screen pixels (x, y)
 function hexToPixel(q, r, size = hexSize) {
@@ -194,13 +166,12 @@ const cubeRound = (frac) => {
 const loadMap = () => {
   const boardData = gameStore.currentRoom?.board?.hexes ?? [];
 
-  hexes.length = 0;
-  hexMap.clear();
+  grid.hexes.clear();
+  grid.selectedHex = null;
+  grid.hoveredHex = null;
 
   boardData.forEach((hexData) => {
-    const hex = new Hex(hexData);
-    hexes.push(hex);
-    hexMap.set(`${hex.q},${hex.r},${hex.s}`, hex);
+    grid.addHex(new Hex(hexData));
   });
 };
 
@@ -242,7 +213,7 @@ const gameLoop = () => {
 
   const time = performance.now();
 
-  hexes.forEach((hex) => {
+  for (const hex of grid.getHexes()) {
     const pixel = hexToPixel(hex.q, hex.r, hexSize);
     let renderSize = hexSize - 1;
     
@@ -258,7 +229,7 @@ const gameLoop = () => {
 
     // Let the Hex object dynamically calculate its own color based on its internal state!
     drawHex(ctx, pixel, renderSize, hex.getRenderColor());
-  });
+  }
   ctx.restore();
 
   animationFrameId = requestAnimationFrame(gameLoop);

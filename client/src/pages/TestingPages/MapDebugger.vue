@@ -4,16 +4,25 @@
       <h1>Map Debugger</h1>
       <p>Fine-tune Double Perlin generation</p>
 
-      <label>Macro Scale: {{ scale }}</label>
-      <input type="range" min="0.05" max="0.30" step="0.01" v-model.number="scale" @change="regenerateMap" />
+      <label>Macro Scale: {{ macroScale }}</label>
+      <input type="range" min="0.01" max="0.20" step="0.01" v-model.number="macroScale" @input="regenerateMap" />
       
-      <label>Erosion Treshold: {{ threshold }}</label>
-      <input type="range" min="0.5" max="1.5" step="0.05" v-model.number="threshold" @change="regenerateMap" />
+      <label>Micro Scale (Fluff): {{ microScale }}</label>
+      <input type="range" min="0.1" max="1.5" step="0.05" v-model.number="microScale" @input="regenerateMap" />
+
+      <label>Micro Intensity: {{ microMix }}</label>
+      <input type="range" min="0.0" max="1.5" step="0.05" v-model.number="microMix" @input="regenerateMap" />
+
+      <label>Island Cutoff Limit: {{ islandCutoff }}</label>
+      <input type="range" min="0.5" max="2.0" step="0.05" v-model.number="islandCutoff" @input="regenerateMap" />
+
+      <label>Inner Lake Density: {{ lakeCutoff }}</label>
+      <input type="range" min="0.1" max="0.8" step="0.05" v-model.number="lakeCutoff" @input="regenerateMap" />
       
       <label>Zoom Size: {{ zoom }}</label>
       <input type="range" min="5" max="40" step="1" v-model.number="zoom" @input="drawMap" />
 
-      <button style="margin-top: 15px;" @click="regenerateMap">Force Re-Roll</button>
+      <button style="margin-top: 15px;" @click="forceReroll">Force Re-Roll</button>
     </div>
     
     <div class="viewer">
@@ -31,13 +40,31 @@ const mapCanvas = ref(null);
 const ctx = ref(null);
 const grid = new ServerHexGrid();
 
-const scale = ref(0.1);
-const threshold = ref(0.8);
-const zoom = ref(18);
+const macroScale = ref(0.05);
+const microScale = ref(0.4);
+const microMix = ref(0.4);
+const islandCutoff = ref(0.8);
+const lakeCutoff = ref(0.35);
+
+const zoom = ref(13);
+
+// Reroll literally deletes the noise math and creates a physically new random seed
+const forceReroll = () => {
+  regenerateMap(true);
+}
 
 // Instead of making a network request, we literally just run the game server math right here!
-const regenerateMap = () => {
-  grid.generateGrid({ scale: scale.value, threshold: threshold.value });
+const regenerateMap = (isReroll = false) => {
+  // Vue @input events pass full MouseEvent arrays, so we strictly check for precisely 'true'
+  const forceReseed = isReroll === true; 
+
+  grid.generateGrid({ 
+    macroScale: macroScale.value, 
+    microScale: microScale.value, 
+    microMix: microMix.value,
+    islandCutoff: islandCutoff.value,
+    lakeCutoff: lakeCutoff.value
+  }, forceReseed);
   drawMap();
 };
 

@@ -6,8 +6,9 @@ import Play from "./Play.vue";
 import Profile from "./Profile.vue";
 import Friends from "./Friends.vue";
 import Settings from "./Settings.vue";
-import DesignTest from "../components/DesignTest.vue";
+import DesignTest from "./TestingPages/DesignTest.vue";
 import Onboarding from "./Onboarding.vue";
+import MapDebugger from "./TestingPages/MapDebugger.vue";
 
 export {
   Login,
@@ -20,4 +21,5 @@ export {
   Settings,
   DesignTest,
   Onboarding,
+  MapDebugger,
 };

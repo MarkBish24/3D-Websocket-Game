@@ -1,4 +1,4 @@
-import { HexGrid } from "../entities/hexGrid.js";
+import { HexGrid } from "../entities/HexGrid.js";
 
 export class GameState {
   constructor(roomId) {

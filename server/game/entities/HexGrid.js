@@ -1,14 +1,50 @@
 import { Hex } from "./hex.js";
+import { createNoise2D } from "simplex-noise";
 
 export class HexGrid {
-  constructor(radius = 17, hexCount = 120) {
+  constructor(radius = 25, hexCount = 120) {
     this.hexes = new Map();
     this.radius = radius;
     this.hexCount = hexCount;
+
+    // noise parameters
+    this.noiseSettings = {
+      scale: 0.1, // Scale of macro terrain
+      threshold: 0.8, // Island size cutoff (higher = larger island)
+      octaves: 3, // Number of layers
+      persistence: 0.5,
+      lacunarity: 2,
+    };
+
+    // Instantiate generator
+    this.noise2D = createNoise2D();
+
     this.generateGrid();
   }
 
-  generateGrid() {
+  getNoise(x, y) {
+    let value = 0;
+    let maxValue = 0;
+    let amplitude = 1;
+    let frequency = this.noiseSettings.scale;
+
+    for (let i = 0; i < this.noiseSettings.octaves; i++) {
+      value += this.noise2D(x * frequency, y * frequency) * amplitude;
+      maxValue += amplitude;
+      amplitude *= this.noiseSettings.persistence;
+      frequency *= this.noiseSettings.lacunarity;
+    }
+
+    return value / maxValue;
+  }
+
+  generateGrid(noiseOverrides = null) {
+    if (noiseOverrides) {
+      this.noiseSettings = { ...this.noiseSettings, ...noiseOverrides };
+    }
+
+    this.hexes.clear();
+
     for (let q = -this.radius; q <= this.radius; q++) {
       const r1 = Math.max(-this.radius, -q - this.radius);
       const r2 = Math.min(this.radius, -q + this.radius);
@@ -25,8 +61,26 @@ export class HexGrid {
   }
 
   shouldIncludeHex(q, r, s) {
-    const distFromCenter = Math.abs(q) / this.radius; // 0 at q=0, 1 at edges
-    return Math.random() > Math.pow(distFromCenter, 1.5) * 2;
+    // Distance from center (0 = center, 1 = absolute edge radius)
+    const distFromCenter =
+      Math.max(Math.abs(q), Math.abs(r), Math.abs(s)) / this.radius;
+
+    // Macro terrain: Create continents & large islands
+    // Simplex noise returns -1 to 1. Normalize it to 0 to 1
+    const macroNoise = (this.getNoise(q, r) + 1) / 2;
+
+    // Edge Fluff System
+    // We sample a high-frequency area by adding a huge mathematical offset
+    const edgeNoise = (this.getNoise(q + 1000, r + 1000) + 1) / 2;
+
+    // Erode the physical edges of the map randomly using the "fluff"
+    const erodedDist = distFromCenter + edgeNoise * 0.4;
+
+    // Cut off outer bounds to guarantee it looks like an island
+    if (erodedDist > this.noiseSettings.threshold) return false;
+
+    // Cut out random lakes/oceans from the interior map
+    return macroNoise > 0.35;
   }
 
   keepLargestConnectedIsland() {

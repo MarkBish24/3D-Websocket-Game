@@ -10,6 +10,7 @@ import {
   Settings,
   DesignTest,
   Onboarding,
+  MapDebugger,
 } from "../pages/index.js";
 
 const routes = [
@@ -23,6 +24,7 @@ const routes = [
   { path: "/settings", name: "Settings", component: Settings },
   { path: "/design-test", name: "DesignTest", component: DesignTest },
   { path: "/onboarding", name: "Onboarding", component: Onboarding },
+  { path: "/map-debugger", name: "MapDebugger", component: MapDebugger },
 ];
 
 const router = createRouter({

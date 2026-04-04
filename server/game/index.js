@@ -1,4 +1,11 @@
-export { resolveTurn } from "./gameLogic/turnResolver.js";
+export { resolveTurn } from "./gameLogic/TurnResolver.js";
 export { GameState } from "./core/GameState.js";
-export { HexGrid } from "./entities/hexGrid.js";
-export { Hex } from "./entities/hex.js";
+export { HexGrid } from "./entities/HexGrid.js";
+export {
+  Hex,
+  PointHex,
+  ObstacleHex,
+  BaseHex,
+  CheckpointHex,
+  GoalHex,
+} from "./entities/hexes/index.js";

@@ -22,8 +22,8 @@ export class Hex {
     if (this.isSelected) return "123, 208, 224"; // Selected highlight color
     if (this.isHovered) return "255, 255, 255"; // Hover highlight color
 
-    // 2. Unrevealed tiles are fog of war
-    if (!this.isRevealed) return "47, 47, 47"; // #2f2f2f
+    // 2. Temporarily disable Fog of War so we can actually see the map!
+    // if (!this.isRevealed) return "47, 47, 47"; // #2f2f2f
 
     // 3. Type-based colors (spawn zones use owner to pick team color)
     switch (this.type) {
@@ -34,16 +34,18 @@ export class Hex {
         return "127, 140, 141"; // #7f8c8d (spawn with no owner yet)
 
       case "checkpoint":
-        return "142, 68, 173"; // #8e44ad
+        return "255, 215, 0"; // Gold! (Was purple: 142, 68, 173)
       case "goal":
-        return "243, 156, 18"; // #f39c12
+        return "243, 156, 18"; // #f39c12 (Orange/Gold)
       case "obstacle":
-        return "26, 26, 26"; // #1a1a1a
+        return "20, 20, 20"; // Super dark grey/black
 
       // 4. Explored but ordinary tile
       case "basic":
+      case "normal":
       default:
-        return this.isExplored ? "74, 74, 74" : "47, 47, 47"; // #4a4a4a : #2f2f2f
+        // By default, if there is no special type, draw it slightly lighter than fog
+        return "74, 74, 74"; // #4a4a4a 
     }
   }
 

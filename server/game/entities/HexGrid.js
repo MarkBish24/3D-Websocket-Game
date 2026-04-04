@@ -1,4 +1,11 @@
-import { Hex } from "./hex.js";
+import {
+  Hex,
+  PointHex,
+  ObstacleHex,
+  BaseHex,
+  CheckpointHex,
+  GoalHex,
+} from "./hexes/index.js";
 import { createNoise2D } from "simplex-noise";
 
 export class HexGrid {
@@ -41,16 +48,21 @@ export class HexGrid {
       for (let r = r1; r <= r2; r++) {
         const s = -q - r;
         const includeType = this.shouldIncludeHex(q, r, s);
-        if (includeType) {
+        if (includeType === "ring" || includeType === "normal") {
           const hex = new Hex(q, r, s);
-          // If the math returned a string identifier like 'ring', assign it! Otherwise fallback to basic.
-          hex.type = typeof includeType === "string" ? includeType : "basic";
+          hex.type = includeType;
           this.addHex(hex);
+        } else if (includeType === "obstacle") {
+          const hex = new ObstacleHex(q, r, s);
+          this.addHex(hex);
+        } else if (includeType === "blank") {
+          continue;
         }
       }
     }
     this.keepLargestConnectedIsland();
     this.mirrorHexes();
+    this.seedSpecialTiles();
   }
 
   shouldIncludeHex(q, r, s) {
@@ -71,7 +83,7 @@ export class HexGrid {
 
     // Clip away the messy jagged hexagon corners! This shapes the absolute world into a perfect circular cylinder
     if (euclidDist > maxCircleRadius) {
-      return false;
+      return "blank";
     }
 
     // Normalized distance (0 = center, 1 = true geometric circle edge) replaces old axial math
@@ -100,10 +112,10 @@ export class HexGrid {
       distFromCenter + microNoise * this.noiseSettings.microMix;
 
     // Constraints: Limit outer edge spread
-    if (erodedDist > this.noiseSettings.islandCutoff) return false;
+    if (erodedDist > this.noiseSettings.islandCutoff) return "obstacle";
 
     // Constraints: Limit inner landmass density to carve out oceans
-    return macroNoise > this.noiseSettings.lakeCutoff;
+    return macroNoise > this.noiseSettings.lakeCutoff ? "normal" : "obstacle";
   }
 
   keepLargestConnectedIsland() {
@@ -112,6 +124,8 @@ export class HexGrid {
 
     for (const key of this.hexes.keys()) {
       if (visited.has(key)) continue;
+      // Skip impassable tiles so we only map out solid land
+      if (!this.hexes.get(key).isPassable) continue;
 
       // BFS flood fill to find connected group
 
@@ -126,7 +140,11 @@ export class HexGrid {
 
         const hex = this.hexes.get(current);
         for (const neighbor of hex.neighbors()) {
-          if (this.hexes.has(neighbor.key) && !visited.has(neighbor.key))
+          if (
+            this.hexes.has(neighbor.key) &&
+            !visited.has(neighbor.key) &&
+            this.hexes.get(neighbor.key).isPassable === true
+          )
             queue.push(neighbor.key);
         }
       }
@@ -136,12 +154,16 @@ export class HexGrid {
     const largest = groups.sort((a, b) => b.length - a.length)[0];
     const largestSet = new Set(largest);
 
-    // Remove everything not in the largest group
+    // Replace everything not in the largest group with an Obstacle
     for (const key of this.hexes.keys()) {
       if (!largestSet.has(key)) {
-        // We preserve the "ring" tiles no matter what so the player always has their outer track!
-        if (this.hexes.get(key).type !== "ring") {
-          this.hexes.delete(key);
+        const existingHex = this.hexes.get(key);
+        // We preserve the "ring" tiles no matter what, and we ignore things that are already obstacles
+        if (existingHex.type !== "ring" && existingHex.type !== "obstacle") {
+          this.hexes.set(
+            key,
+            new ObstacleHex(existingHex.q, existingHex.r, existingHex.s),
+          );
         }
       }
     }
@@ -153,7 +175,72 @@ export class HexGrid {
 
     for (const hex of half) {
       this.addHex(hex);
-      this.addHex(new Hex(-hex.q, -hex.r, -hex.s));
+      const MirroredClass = hex.constructor;
+      const flippedHex = new MirroredClass(-hex.q, -hex.r, -hex.s);
+      this.addHex(flippedHex);
+    }
+  }
+
+  seedSpecialTiles() {
+    // 1. Identify all valid land tiles
+    const passables = Array.from(this.hexes.values()).filter(
+      (hex) => hex.isPassable && hex.type !== "ring",
+    );
+
+    if (passables.length === 0) return;
+
+    // 2. Sort by q-coordinate to find the leftmost and rightmost hexes
+    passables.sort((a, b) => a.q - b.q);
+
+    const p1Core = passables[0];
+    const p2Core = passables[passables.length - 1];
+
+    this.convertAreaToBase(p1Core, "red", 20);
+    this.convertAreaToBase(p2Core, "blue", 20);
+
+    this.hexes.set(
+      p1Core.key,
+      new GoalHex(p1Core.q, p1Core.r, p1Core.s, "red"),
+    );
+    this.hexes.set(
+      p2Core.key,
+      new GoalHex(p2Core.q, p2Core.r, p2Core.s, "blue"),
+    );
+
+    // 3. Find the geometric center of the map
+    if (this.hexes.has("0,0,0") && this.hexes.get("0,0,0").isPassable) {
+      const center = this.hexes.get("0,0,0");
+      // 4. Convert the center hex to a checkpoint
+      this.hexes.set(
+        center.key,
+        new CheckpointHex(center.q, center.r, center.s),
+      );
+    }
+  }
+
+  convertAreaToBase(startHex, owner, radius) {
+    const queue = [startHex];
+    const visited = new Set([startHex.key]);
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      this.hexes.set(
+        current.key,
+        new BaseHex(current.q, current.r, current.s, owner),
+      );
+
+      if (visited.size >= radius) break;
+
+      for (const neighbor of current.neighbors()) {
+        if (
+          this.hexes.has(neighbor.key) &&
+          !visited.has(neighbor.key) &&
+          this.hexes.get(neighbor.key).isPassable === true
+        ) {
+          visited.add(neighbor.key);
+          queue.push(neighbor);
+        }
+      }
     }
   }
 

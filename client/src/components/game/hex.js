@@ -38,14 +38,14 @@ export class Hex {
       case "goal":
         return "243, 156, 18"; // #f39c12 (Orange/Gold)
       case "obstacle":
-        return "20, 20, 20"; // Super dark grey/black
+        return "40, 40, 40"; // Super dark grey/black
 
       // 4. Explored but ordinary tile
       case "basic":
       case "normal":
       default:
         // By default, if there is no special type, draw it slightly lighter than fog
-        return "74, 74, 74"; // #4a4a4a 
+        return "74, 74, 74"; // #4a4a4a
     }
   }
 

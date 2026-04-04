@@ -195,8 +195,8 @@ export class HexGrid {
     const p1Core = passables[0];
     const p2Core = passables[passables.length - 1];
 
-    this.convertAreaToBase(p1Core, "red", 20);
-    this.convertAreaToBase(p2Core, "blue", 20);
+    this.convertAreaToBase(p1Core, "red", 30);
+    this.convertAreaToBase(p2Core, "blue", 30);
 
     this.hexes.set(
       p1Core.key,

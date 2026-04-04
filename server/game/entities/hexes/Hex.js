@@ -15,6 +15,10 @@ export class Hex {
     this.units = [];
     this.isRevealed = false;
     this.isExplored = false;
+
+    // Movement & Vision Constraints
+    this.isPassable = true;
+    this.blocksVision = false;
   }
 
   distanceTo(targetHex) {
@@ -52,6 +56,8 @@ export class Hex {
       units: this.units,
       isRevealed: this.isRevealed,
       isExplored: this.isExplored,
+      isPassable: this.isPassable,
+      blocksVision: this.blocksVision,
     };
   }
 }

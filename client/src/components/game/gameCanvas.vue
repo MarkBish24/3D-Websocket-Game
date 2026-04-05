@@ -18,6 +18,7 @@ import { useGameStore } from "../../stores/gameStore.js";
 import { Hex } from "./hex.js";
 import { HexGrid } from "./hexGrid.js";
 import { getGameSocket } from "../../plugins/gameSocket.js";
+import { drawUnitsOnHex } from "./unit.js";
 
 const gameStore = useGameStore();
 
@@ -34,21 +35,21 @@ let isDragging = false;
 let lastMousePos = { x: 0, y: 0 };
 
 let isRightDragging = false;
-let rightDragMoved  = false;
-let liveDragPath    = [];
+let rightDragMoved = false;
+let liveDragPath = [];
 
 // Marker for the destination hex (yellow) in a double-click path
-let destinationHex  = null;
+let destinationHex = null;
 
 // Double right-click detection — measured between mousedown events (most accurate)
-let lastRightDownTime  = 0;
+let lastRightDownTime = 0;
 let isRightDoubleClick = false;
-let rightClickFirstHex = null;  // hex saved at mousedown #1 — used as A* origin on double-click
-const DOUBLE_CLICK_MS  = 400;
+let rightClickFirstHex = null; // hex saved at mousedown #1 — used as A* origin on double-click
+const DOUBLE_CLICK_MS = 400;
 
 onMounted(() => {
-  gameCanvas.value.width = window.innerWidth / 2;
-  gameCanvas.value.height = window.innerHeight / 2;
+  gameCanvas.value.width = window.innerWidth / 1.5;
+  gameCanvas.value.height = window.innerHeight / 1.5;
   gameCanvas.value.style.backgroundColor = "#000000";
   ctx = gameCanvas.value.getContext("2d");
   gameLoop();
@@ -71,8 +72,12 @@ let dragHasMoved = false;
 
 // ── Pathfinding helpers (module-scope so they aren't recreated every frame) ────
 const HEX_DIRECTIONS = [
-  { q:  1, r: -1, s:  0 }, { q:  1, r:  0, s: -1 }, { q:  0, r:  1, s: -1 },
-  { q: -1, r:  1, s:  0 }, { q: -1, r:  0, s:  1 }, { q:  0, r: -1, s:  1 },
+  { q: 1, r: -1, s: 0 },
+  { q: 1, r: 0, s: -1 },
+  { q: 0, r: 1, s: -1 },
+  { q: -1, r: 1, s: 0 },
+  { q: -1, r: 0, s: 1 },
+  { q: 0, r: -1, s: 1 },
 ];
 
 // Unique string key for a hex — used as Map keys in A*
@@ -88,12 +93,12 @@ function isNeighbor(a, b) {
 
 // A* — uniform cost (every walkable tile costs 1), obstacles are walls
 function findAStarPath(start, goal) {
-  const openSet  = [{ hex: start, g: 0, f: hexDist(start, goal) }];
-  const cameFrom = new Map();                        // neighborKey → parentKey
-  const gScore   = new Map([[hexKey(start), 0]]);
+  const openSet = [{ hex: start, g: 0, f: hexDist(start, goal) }];
+  const cameFrom = new Map(); // neighborKey → parentKey
+  const gScore = new Map([[hexKey(start), 0]]);
 
   while (openSet.length > 0) {
-    openSet.sort((a, b) => a.f - b.f);              // lowest f first
+    openSet.sort((a, b) => a.f - b.f); // lowest f first
     const { hex: current } = openSet.shift();
 
     if (current === goal) return reconstructPath(cameFrom, hexKey(current));
@@ -101,10 +106,10 @@ function findAStarPath(start, goal) {
     const curKey = hexKey(current);
     for (const dir of HEX_DIRECTIONS) {
       const nb = grid.getHex(current.q + dir.q, current.r + dir.r);
-      if (!nb || nb.type === 'obstacle') continue;  // nb.type not nb.getType()
+      if (!nb || nb.type === "obstacle") continue; // nb.type not nb.getType()
 
-      const nbKey   = hexKey(nb);
-      const tentG   = gScore.get(curKey) + 1;
+      const nbKey = hexKey(nb);
+      const tentG = gScore.get(curKey) + 1;
       if (tentG < (gScore.get(nbKey) ?? Infinity)) {
         cameFrom.set(nbKey, curKey);
         gScore.set(nbKey, tentG);
@@ -117,9 +122,9 @@ function findAStarPath(start, goal) {
 
 function reconstructPath(cameFrom, endKey) {
   const path = [];
-  let cur = endKey;                                 // cur is always a key string
+  let cur = endKey; // cur is always a key string
   while (cur) {
-    const [q, r] = cur.split(',').map(Number);
+    const [q, r] = cur.split(",").map(Number);
     path.unshift(grid.getHex(q, r));
     cur = cameFrom.get(cur);
   }
@@ -128,11 +133,15 @@ function reconstructPath(cameFrom, endKey) {
 
 // Walk every hex in the grid to find the nearest checkpoint
 function findNearestCheckpoint(fromHex) {
-  let nearest = null, minD = Infinity;
+  let nearest = null,
+    minD = Infinity;
   for (const h of grid.getHexes()) {
-    if (h.type === 'checkpoint') {
+    if (h.type === "checkpoint") {
       const d = hexDist(fromHex, h);
-      if (d < minD) { minD = d; nearest = h; }
+      if (d < minD) {
+        minD = d;
+        nearest = h;
+      }
     }
   }
   return nearest;
@@ -148,23 +157,23 @@ const handleMouseMove = (e) => {
   lastMousePos = { x: e.clientX, y: e.clientY };
 
   // Get the exact physical bounds of the canvas so CSS padding/navbars don't break tracking
-  const rect   = gameCanvas.value.getBoundingClientRect();
-  const rawX   = e.clientX - rect.left;
-  const rawY   = e.clientY - rect.top;
+  const rect = gameCanvas.value.getBoundingClientRect();
+  const rawX = e.clientX - rect.left;
+  const rawY = e.clientY - rect.top;
 
   // Convert screen pixels → world space (accounting for camera zoom + offset)
-  const mouseX = (rawX - gameCanvas.value.width  / 2 - camera.x) / camera.zoom;
+  const mouseX = (rawX - gameCanvas.value.width / 2 - camera.x) / camera.zoom;
   const mouseY = (rawY - gameCanvas.value.height / 2 - camera.y) / camera.zoom;
 
-  const hexCoords  = pixelToHex(mouseX, mouseY);
+  const hexCoords = pixelToHex(mouseX, mouseY);
   const roundedHex = cubeRound(hexCoords);
-  const targetHex  = grid.getHex(roundedHex.q, roundedHex.r) || null;
+  const targetHex = grid.getHex(roundedHex.q, roundedHex.r) || null;
 
   // O(1) hover update
   if (grid.getHoveredHex() !== targetHex) grid.toggleHoveredHex(targetHex);
 
   // ── Right-drag: extend the live drag path (neighbors only) ─────────────
-  if (isRightDragging && targetHex && targetHex.type !== 'obstacle') {
+  if (isRightDragging && targetHex && targetHex.type !== "obstacle") {
     const last = liveDragPath[liveDragPath.length - 1];
     const prev = liveDragPath[liveDragPath.length - 2];
 
@@ -176,28 +185,28 @@ const handleMouseMove = (e) => {
         liveDragPath.push(targetHex);
         rightDragMoved = true;
       }
-      grid.setPath([...liveDragPath], 'drag');
+      grid.setPath([...liveDragPath], "drag");
     }
   }
 
   // Cursor feedback
-  if (isDragging)                gameCanvas.value.style.cursor = 'grabbing';
-  else if (grid.getHoveredHex()) gameCanvas.value.style.cursor = 'pointer';
-  else                           gameCanvas.value.style.cursor = 'grab';
+  if (isDragging) gameCanvas.value.style.cursor = "grabbing";
+  else if (grid.getHoveredHex()) gameCanvas.value.style.cursor = "pointer";
+  else gameCanvas.value.style.cursor = "grab";
 };
 
 const handleMouseDown = (e) => {
   if (e.button === 0) {
     // LEFT — pan camera
-    isDragging    = true;
-    dragHasMoved  = false;
-    if (gameCanvas.value) gameCanvas.value.style.cursor = 'grabbing';
+    isDragging = true;
+    dragHasMoved = false;
+    if (gameCanvas.value) gameCanvas.value.style.cursor = "grabbing";
   }
   if (e.button === 2) {
     // Detect double-click HERE (between presses) — most reliable timing point
     const now = Date.now();
-    isRightDoubleClick = (now - lastRightDownTime) < DOUBLE_CLICK_MS;
-    lastRightDownTime  = now;
+    isRightDoubleClick = now - lastRightDownTime < DOUBLE_CLICK_MS;
+    lastRightDownTime = now;
 
     // Save the ALREADY-SELECTED hex as the A* origin.
     // Must use getSelectedHex() here — getHoveredHex() would save the tile
@@ -208,12 +217,12 @@ const handleMouseDown = (e) => {
 
     // Start potential drag-path
     isRightDragging = true;
-    rightDragMoved  = false;
-    liveDragPath    = [];
+    rightDragMoved = false;
+    liveDragPath = [];
     const start = grid.getHoveredHex();
-    if (start && start.type !== 'obstacle') {
+    if (start && start.type !== "obstacle") {
       liveDragPath.push(start);
-      grid.setPath([...liveDragPath], 'drag');
+      grid.setPath([...liveDragPath], "drag");
     }
   }
   lastMousePos = { x: e.clientX, y: e.clientY };
@@ -228,7 +237,7 @@ const handleMouseUp = (e) => {
       grid.clearPath();
       destinationHex = null;
     }
-    if (gameCanvas.value) gameCanvas.value.style.cursor = 'grab';
+    if (gameCanvas.value) gameCanvas.value.style.cursor = "grab";
   }
 
   // ── RIGHT button ─────────────────────────────────────────────────
@@ -240,9 +249,9 @@ const handleMouseUp = (e) => {
       const socket = getGameSocket();
       const roomId = gameStore.currentRoom?.roomId;
       if (socket && roomId) {
-        socket.emit('game:path_drawn', {
+        socket.emit("game:path_drawn", {
           roomId,
-          mode: 'drag',
+          mode: "drag",
           path: liveDragPath.map(({ q, r, s }) => ({ q, r, s })),
         });
       }
@@ -255,7 +264,7 @@ const handleMouseUp = (e) => {
         // We use rightClickFirstHex (saved at mousedown #1) as origin so that
         // the first click's toggleSelectedHex doesn't collapse origin === target.
         const origin = rightClickFirstHex;
-        
+
         // Restore origin selection that was lost on mouseup #1
         if (origin && grid.getSelectedHex() !== origin) {
           grid.toggleSelectedHex(origin);
@@ -264,13 +273,13 @@ const handleMouseUp = (e) => {
         if (origin && target && target !== origin) {
           destinationHex = target;
           const path = findAStarPath(origin, target);
-          grid.setPath(path, 'astar');
+          grid.setPath(path, "astar");
         }
       } else {
         // SINGLE right-click → select / deselect tile
         grid.toggleSelectedHex(target);
-        grid.clearPath();         // clear stale path when changing selection
-        destinationHex = null;    // clear old destination
+        grid.clearPath(); // clear stale path when changing selection
+        destinationHex = null; // clear old destination
       }
 
       isRightDoubleClick = false; // always reset after consuming
@@ -281,10 +290,10 @@ const handleMouseUp = (e) => {
 };
 
 const handleMouseLeave = (e) => {
-  isDragging       = false;
-  isRightDragging  = false;   // cancel drag path if mouse exits canvas
-  liveDragPath     = [];
-  if (gameCanvas.value) gameCanvas.value.style.cursor = 'grab';
+  isDragging = false;
+  isRightDragging = false; // cancel drag path if mouse exits canvas
+  liveDragPath = [];
+  if (gameCanvas.value) gameCanvas.value.style.cursor = "grab";
 };
 
 const handleWheel = (e) => {
@@ -415,7 +424,13 @@ const gameLoop = () => {
     if (hex === selectedHex || hex === hoveredHex || hex.isOnPath) continue;
 
     const pixel = hexToPixel(hex.q, hex.r, hexSize);
-    drawHex(ctx, pixel, hexSize - 1, hex.getRenderColor(), hex.getStrokeColor());
+    drawHex(
+      ctx,
+      pixel,
+      hexSize - 1,
+      hex.getRenderColor(),
+      hex.getStrokeColor(),
+    );
   }
 
   // 1.5 — Path hexes (above base map, below hover/selected)
@@ -424,54 +439,72 @@ const gameLoop = () => {
     const ph = pathHexes[i];
     if (ph === selectedHex || ph === hoveredHex) continue;
 
-    const pixel    = hexToPixel(ph.q, ph.r, hexSize);
+    const pixel = hexToPixel(ph.q, ph.r, hexSize);
     const progress = pathHexes.length > 1 ? i / (pathHexes.length - 1) : 0; // 0 → 1 along route
 
-    if (ph.pathMode === 'astar') {
+    if (ph.pathMode === "astar") {
       // Very subtle light-blue tint — shows route without overpowering the map
-      const fillA   = 0.10 + progress * 0.08;  // 0.10 → 0.18
-      const strokeA = 0.25 + progress * 0.20;  // 0.25 → 0.45
-      drawHex(ctx, pixel, hexSize - 1,
+      const fillA = 0.1 + progress * 0.08; // 0.10 → 0.18
+      const strokeA = 0.25 + progress * 0.2; // 0.25 → 0.45
+      drawHex(
+        ctx,
+        pixel,
+        hexSize - 1,
         `rgba(100, 200, 255, ${fillA})`,
-        `rgba(100, 200, 255, ${strokeA})`
+        `rgba(100, 200, 255, ${strokeA})`,
       );
     } else {
       // Drag path — brighter step-by-step highlight, intensity builds toward the tip
-      const fillA   = 0.20 + progress * 0.15;  // 0.20 → 0.35
-      const strokeA = 0.50 + progress * 0.35;  // 0.50 → 0.85
-      drawHex(ctx, pixel, hexSize - 1,
+      const fillA = 0.2 + progress * 0.15; // 0.20 → 0.35
+      const strokeA = 0.5 + progress * 0.35; // 0.50 → 0.85
+      drawHex(
+        ctx,
+        pixel,
+        hexSize - 1,
         `rgba(80, 180, 255, ${fillA})`,
-        `rgba(80, 180, 255, ${strokeA})`
+        `rgba(80, 180, 255, ${strokeA})`,
       );
     }
   }
 
   // 1.75 — Destination Marker and Drag tip
-  const markerPulse = 0.6 + Math.sin(time / 300) * 0.4;    // 0.2 → 1.0
+  const markerPulse = 0.6 + Math.sin(time / 300) * 0.4; // 0.2 → 1.0
 
   if (destinationHex) {
     const pixel = hexToPixel(destinationHex.q, destinationHex.r, hexSize);
-    drawHex(ctx, pixel, hexSize - 1,
-      `rgba(255, 210, 0, ${markerPulse * 0.25})`,   // yellow fill
-      `rgba(255, 230, 0, ${markerPulse})`            // yellow stroke
+    drawHex(
+      ctx,
+      pixel,
+      hexSize - 1,
+      `rgba(255, 210, 0, ${markerPulse * 0.25})`, // yellow fill
+      `rgba(255, 230, 0, ${markerPulse})`, // yellow stroke
     );
-    drawHex(ctx, pixel, hexSize * 0.4,
-      'rgba(255, 220, 50, 0)',
-      `rgba(255, 220, 50, ${markerPulse * 0.9})`    // inner ring
+    drawHex(
+      ctx,
+      pixel,
+      hexSize * 0.4,
+      "rgba(255, 220, 50, 0)",
+      `rgba(255, 220, 50, ${markerPulse * 0.9})`, // inner ring
     );
   }
 
   if (isRightDragging && liveDragPath.length > 0) {
     const dragTip = liveDragPath[liveDragPath.length - 1];
     if (dragTip !== destinationHex) {
-      const pixel   = hexToPixel(dragTip.q, dragTip.r, hexSize);
-      drawHex(ctx, pixel, hexSize - 1,
+      const pixel = hexToPixel(dragTip.q, dragTip.r, hexSize);
+      drawHex(
+        ctx,
+        pixel,
+        hexSize - 1,
         `rgba(255, 140, 0, ${markerPulse * 0.25})`,
-        `rgba(255, 180, 0, ${markerPulse})`
+        `rgba(255, 180, 0, ${markerPulse})`,
       );
-      drawHex(ctx, pixel, hexSize * 0.4,
-        'rgba(255, 200, 50, 0)',
-        `rgba(255, 200, 50, ${markerPulse * 0.9})`
+      drawHex(
+        ctx,
+        pixel,
+        hexSize * 0.4,
+        "rgba(255, 200, 50, 0)",
+        `rgba(255, 200, 50, ${markerPulse * 0.9})`,
       );
     }
   }
@@ -531,6 +564,15 @@ const gameLoop = () => {
       }
     }
   }
+
+  // 4. Draw Units
+  for (const hex of grid.getHexes()) {
+    if (hex.units && hex.units.length > 0) {
+      const pixel = hexToPixel(hex.q, hex.r, hexSize);
+      drawUnitsOnHex(ctx, hex.units, pixel, hexSize, time);
+    }
+  }
+
   ctx.restore();
 
   animationFrameId = requestAnimationFrame(gameLoop);

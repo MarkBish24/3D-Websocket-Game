@@ -6,6 +6,7 @@ import {
   CheckpointHex,
   GoalHex,
 } from "./hexes/index.js";
+import { Unit } from "./units/index.js";
 import { createNoise2D } from "simplex-noise";
 
 export class HexGrid {
@@ -198,14 +199,11 @@ export class HexGrid {
     this.convertAreaToBase(p1Core, "red", 30);
     this.convertAreaToBase(p2Core, "blue", 30);
 
-    this.hexes.set(
-      p1Core.key,
-      new GoalHex(p1Core.q, p1Core.r, p1Core.s, "red"),
-    );
-    this.hexes.set(
-      p2Core.key,
-      new GoalHex(p2Core.q, p2Core.r, p2Core.s, "blue"),
-    );
+    const redGoal = new GoalHex(p1Core.q, p1Core.r, p1Core.s, "red");
+    const blueGoal = new GoalHex(p2Core.q, p2Core.r, p2Core.s, "blue");
+
+    this.hexes.set(p1Core.key, redGoal);
+    this.hexes.set(p2Core.key, blueGoal);
 
     // 3. Find the geometric center of the map
     if (this.hexes.has("0,0,0") && this.hexes.get("0,0,0").isPassable) {
@@ -215,6 +213,12 @@ export class HexGrid {
         center.key,
         new CheckpointHex(center.q, center.r, center.s),
       );
+    }
+
+    // spawn 10 units on each goal
+    for (let i = 0; i < 10; i++) {
+      redGoal.addUnit(new Unit(redGoal.q, redGoal.r, redGoal.s, "red"));
+      blueGoal.addUnit(new Unit(blueGoal.q, blueGoal.r, blueGoal.s, "blue"));
     }
   }
 

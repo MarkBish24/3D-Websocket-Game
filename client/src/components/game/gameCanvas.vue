@@ -34,13 +34,17 @@ let isDragging = false;
 let lastMousePos = { x: 0, y: 0 };
 
 let isRightDragging = false;
-let rightDragMoved = false;
-let liveDragPath = [];
+let rightDragMoved  = false;
+let liveDragPath    = [];
 
-// Destination marker (set by single right-click, pathed to by double right-click)
-let destinationHex = null;
-let lastRightClickTime = 0;    // for double-click detection
-const DOUBLE_CLICK_MS = 350;   // window to register a double right-click
+// Marker for the destination hex (yellow) in a double-click path
+let destinationHex  = null;
+
+// Double right-click detection — measured between mousedown events (most accurate)
+let lastRightDownTime  = 0;
+let isRightDoubleClick = false;
+let rightClickFirstHex = null;  // hex saved at mousedown #1 — used as A* origin on double-click
+const DOUBLE_CLICK_MS  = 400;
 
 onMounted(() => {
   gameCanvas.value.width = window.innerWidth / 2;
@@ -184,56 +188,55 @@ const handleMouseMove = (e) => {
 
 const handleMouseDown = (e) => {
   if (e.button === 0) {
-    // LEFT — pan
-    isDragging = true;
-    dragHasMoved = false;
+    // LEFT — pan camera
+    isDragging    = true;
+    dragHasMoved  = false;
+    if (gameCanvas.value) gameCanvas.value.style.cursor = 'grabbing';
   }
   if (e.button === 2) {
-    // RIGHT — drag-path
+    // Detect double-click HERE (between presses) — most reliable timing point
+    const now = Date.now();
+    isRightDoubleClick = (now - lastRightDownTime) < DOUBLE_CLICK_MS;
+    lastRightDownTime  = now;
+
+    // Save the ALREADY-SELECTED hex as the A* origin.
+    // Must use getSelectedHex() here — getHoveredHex() would save the tile
+    // being double-clicked, making origin === target and producing no path.
+    if (!isRightDoubleClick) {
+      rightClickFirstHex = grid.getSelectedHex();
+    }
+
+    // Start potential drag-path
     isRightDragging = true;
-    rightDragMoved = false;
-    liveDragPath = [];
+    rightDragMoved  = false;
+    liveDragPath    = [];
     const start = grid.getHoveredHex();
-    if (start) {
+    if (start && start.type !== 'obstacle') {
       liveDragPath.push(start);
-      grid.setPath([...liveDragPath], "drag");
+      grid.setPath([...liveDragPath], 'drag');
     }
   }
   lastMousePos = { x: e.clientX, y: e.clientY };
 };
 
 const handleMouseUp = (e) => {
-  // ── LEFT button: select hex ───────────────────────────────────────
+  // ── LEFT button ──────────────────────────────────────────────────
   if (e.button === 0) {
     isDragging = false;
-
+    // Click (no drag) — clear the path
     if (!dragHasMoved) {
-      const targetHex = grid.getHoveredHex();
-      grid.toggleSelectedHex(targetHex);
-
-      if (targetHex) {
-        // Emit the click to the server
-        const socket = getGameSocket();
-        const roomId = gameStore.currentRoom?.roomId;
-        if (socket && roomId) {
-          socket.emit('game:hex_clicked', { roomId, q: targetHex.q, r: targetHex.r, s: targetHex.s });
-        }
-      } else {
-        // Clicked empty space — clear path and destination
-        grid.clearPath();
-        destinationHex = null;
-      }
+      grid.clearPath();
+      destinationHex = null;
     }
-
     if (gameCanvas.value) gameCanvas.value.style.cursor = 'grab';
   }
 
-  // ── RIGHT button: set destination OR double-click to run A* ────────────
+  // ── RIGHT button ─────────────────────────────────────────────────
   if (e.button === 2) {
     isRightDragging = false;
 
     if (rightDragMoved && liveDragPath.length > 1) {
-      // Committed a drag path — emit to server
+      // ── Drag committed — emit the painted path to the server ─────────
       const socket = getGameSocket();
       const roomId = gameStore.currentRoom?.roomId;
       if (socket && roomId) {
@@ -244,24 +247,33 @@ const handleMouseUp = (e) => {
         });
       }
     } else {
-      // No drag — single or double right-click
+      // ── Pure right-click (no drag) ───────────────────────────────
       const target = grid.getHoveredHex();
-      const now    = Date.now();
 
-      if (now - lastRightClickTime < DOUBLE_CLICK_MS) {
-        // ── DOUBLE right-click → A* from selected hex to destination marker ──
-        const origin = grid.getSelectedHex();
-        if (origin && destinationHex) {
-          const path = findAStarPath(origin, destinationHex);
+      if (isRightDoubleClick) {
+        // DOUBLE right-click → A* from the first-clicked hex to this tile
+        // We use rightClickFirstHex (saved at mousedown #1) as origin so that
+        // the first click's toggleSelectedHex doesn't collapse origin === target.
+        const origin = rightClickFirstHex;
+        
+        // Restore origin selection that was lost on mouseup #1
+        if (origin && grid.getSelectedHex() !== origin) {
+          grid.toggleSelectedHex(origin);
+        }
+
+        if (origin && target && target !== origin) {
+          destinationHex = target;
+          const path = findAStarPath(origin, target);
           grid.setPath(path, 'astar');
         }
-        lastRightClickTime = 0; // reset so a third click doesn't re-trigger
       } else {
-        // ── SINGLE right-click → place/move destination marker ────────
-        destinationHex     = target;  // null if clicking empty space (clears it)
-        lastRightClickTime = now;
-        grid.clearPath();             // clear stale path when destination changes
+        // SINGLE right-click → select / deselect tile
+        grid.toggleSelectedHex(target);
+        grid.clearPath();         // clear stale path when changing selection
+        destinationHex = null;    // clear old destination
       }
+
+      isRightDoubleClick = false; // always reset after consuming
     }
 
     liveDragPath = [];
@@ -434,20 +446,34 @@ const gameLoop = () => {
     }
   }
 
-  // 1.75 — Destination marker (set by single right-click)
+  // 1.75 — Destination Marker and Drag tip
+  const markerPulse = 0.6 + Math.sin(time / 300) * 0.4;    // 0.2 → 1.0
+
   if (destinationHex) {
     const pixel = hexToPixel(destinationHex.q, destinationHex.r, hexSize);
-    // Pulsing orange outline to clearly mark the target
-    const pulse = 0.6 + Math.sin(time / 300) * 0.4;               // 0.2 → 1.0
     drawHex(ctx, pixel, hexSize - 1,
-      `rgba(255, 140, 0, ${pulse * 0.25})`,   // amber fill
-      `rgba(255, 180, 0, ${pulse})`            // bright amber stroke
+      `rgba(255, 210, 0, ${markerPulse * 0.25})`,   // yellow fill
+      `rgba(255, 230, 0, ${markerPulse})`            // yellow stroke
     );
-    // Inner crosshair ring — a smaller sharp ring at the center
-    drawHex(ctx, pixel, hexSize * 0.45,
-      'rgba(255, 200, 50, 0)',
-      `rgba(255, 200, 50, ${pulse * 0.9})`
+    drawHex(ctx, pixel, hexSize * 0.4,
+      'rgba(255, 220, 50, 0)',
+      `rgba(255, 220, 50, ${markerPulse * 0.9})`    // inner ring
     );
+  }
+
+  if (isRightDragging && liveDragPath.length > 0) {
+    const dragTip = liveDragPath[liveDragPath.length - 1];
+    if (dragTip !== destinationHex) {
+      const pixel   = hexToPixel(dragTip.q, dragTip.r, hexSize);
+      drawHex(ctx, pixel, hexSize - 1,
+        `rgba(255, 140, 0, ${markerPulse * 0.25})`,
+        `rgba(255, 180, 0, ${markerPulse})`
+      );
+      drawHex(ctx, pixel, hexSize * 0.4,
+        'rgba(255, 200, 50, 0)',
+        `rgba(255, 200, 50, ${markerPulse * 0.9})`
+      );
+    }
   }
 
   // 2. Draw Hovered Hex Second (renders on top of the map)

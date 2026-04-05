@@ -16,7 +16,7 @@ class Unit {
   }
 
   followPath(path) {
-    this.path = path;
+    this.path = [...path];
     this.isMoving = true;
   }
 

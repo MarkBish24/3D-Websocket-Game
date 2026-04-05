@@ -16,6 +16,7 @@ import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useGameStore } from "../../stores/gameStore.js";
 import { Hex } from "./hex.js";
 import { HexGrid } from "./hexGrid.js";
+import { getGameSocket } from "../../plugins/gameSocket.js";
 
 const gameStore = useGameStore();
 
@@ -102,7 +103,23 @@ const handleMouseUp = (e) => {
 
   // Handle O(1) click selection if the mouse wasn't dragged
   if (!dragHasMoved) {
-    grid.toggleSelectedHex(grid.getHoveredHex());
+    const targetHex = grid.getHoveredHex();
+    grid.toggleSelectedHex(targetHex);
+
+    if (targetHex) {
+      const socket = getGameSocket();
+      const roomId = gameStore.currentRoom?.roomId;
+
+      if (socket && roomId) {
+        // Broadcast the exact coordinates of the hex that was clicked!
+        socket.emit("game:hex_clicked", {
+          roomId,
+          q: targetHex.q,
+          r: targetHex.r,
+          s: targetHex.s,
+        });
+      }
+    }
   }
 
   // Fall back to pointer check via movement or grab by default when released
@@ -224,7 +241,13 @@ const gameLoop = () => {
     if (hex === selectedHex || hex === hoveredHex) continue;
 
     const pixel = hexToPixel(hex.q, hex.r, hexSize);
-    drawHex(ctx, pixel, hexSize - 1, hex.getRenderColor(), hex.getStrokeColor());
+    drawHex(
+      ctx,
+      pixel,
+      hexSize - 1,
+      hex.getRenderColor(),
+      hex.getStrokeColor(),
+    );
   }
 
   // 2. Draw Hovered Hex Second (renders on top of the map)
@@ -244,7 +267,13 @@ const gameLoop = () => {
       hexSize + Math.sin(time / (200 * HEX_GRADIENT_SPEED)) * 3; // dramatic pulsing scale
 
     // Draw the base selected hex first using its standard physical color
-    drawHex(ctx, pixel, renderSize, selectedHex.getRenderColor(), selectedHex.getStrokeColor());
+    drawHex(
+      ctx,
+      pixel,
+      renderSize,
+      selectedHex.getRenderColor(),
+      selectedHex.getStrokeColor(),
+    );
 
     // The physical scale bounces on Math.sin(time / 200).
     // The exact duration of one sine wave cycle is 2*PI. (400 * Math.PI = ~1256ms)

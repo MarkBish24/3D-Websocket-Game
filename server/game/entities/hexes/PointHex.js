@@ -29,4 +29,12 @@ export class PointHex extends Hex {
     }
     return false; // Unit not found on this tile
   }
+
+  hasUnits() {
+    return this.units.length > 0;
+  }
+
+  getUnits() {
+    return this.units;
+  }
 }

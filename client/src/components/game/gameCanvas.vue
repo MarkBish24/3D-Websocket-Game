@@ -21,6 +21,7 @@ import { getGameSocket } from "../../plugins/gameSocket.js";
 import { drawUnitsOnHex } from "./unit.js";
 
 const gameStore = useGameStore();
+const socket = getGameSocket();
 
 const gameCanvas = ref(null);
 let ctx = null;
@@ -274,6 +275,18 @@ const handleMouseUp = (e) => {
           destinationHex = target;
           const path = findAStarPath(origin, target);
           grid.setPath(path, "astar");
+
+          const currentRoomId = gameStore.currentRoom?.roomId;
+
+          if (socket && currentRoomId) {
+            socket.emit("game:move_units", {
+              roomId: currentRoomId,
+              origin: { q: origin.q, r: origin.r, s: origin.s },
+              path: path
+                .slice(1)
+                .map((hex) => ({ q: hex.q, r: hex.r, s: hex.s })),
+            });
+          }
         }
       } else {
         // SINGLE right-click → select / deselect tile

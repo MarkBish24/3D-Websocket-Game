@@ -45,6 +45,19 @@ gameNamespace.on("connect", (socket) => {
 
     // Notify the other player in the room (if already connected)
     socket.to(`room:${roomId}`).emit("game:opponent_joined", { user: user });
+
+    // Start the physics loop if it hasn't turned on yet!
+    if (!matchData.tickInterval) {
+      matchData.startSimulationLoop(() => {
+        // This callback runs natively every 500ms if a unit moved,
+        // instantly syncing everyone's Vue client to slide the tokens.
+        gameNamespace.to(`room:${roomId}`).emit("game:state_sync", {
+          roomId,
+          matchData: matchData.serialize(),
+          message: "Simulation Tick Update",
+        });
+      });
+    }
   });
 
   socket.on("disconnect", () => {
@@ -59,6 +72,41 @@ gameNamespace.on("connect", (socket) => {
     console.log(
       `[Game] ${user.username}:${user.id} clicked on hex ${q}, ${r}, ${s} in room ${roomId}`,
     );
+  });
+
+  // game: move_unit
+  // called when a player wants to move a unit
+  socket.on("game:move_units", (data) => {
+    const { roomId, origin, path } = data;
+
+    const matchData = getOrCreateGame(roomId);
+
+    const originHex = matchData.getBoardHex(
+      `${origin.q},${origin.r},${origin.s}`,
+    );
+
+    if (originHex && originHex.units.length > 0) {
+      originHex.units.forEach((unit) => {
+        unit.followPath(path);
+      });
+    }
+  });
+
+  // game: path_drawn
+  // called when a player draws a path by dragging
+  socket.on("game:path_drawn", (data) => {
+    const { roomId, mode, path } = data;
+
+    const matchData = getOrCreateGame(roomId);
+
+    const originKey = `${path[0].q},${path[0].r},${path[0].s}`;
+    const originHex = matchData.getBoardHex(originKey);
+
+    if (originHex && originHex.units.length > 0) {
+      originHex.units.forEach((unit) => {
+        unit.followPath(path.slice(1));
+      });
+    }
   });
 });
 

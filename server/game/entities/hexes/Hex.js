@@ -13,6 +13,7 @@ export class Hex {
 
     // Future Mechanics
     this.units = [];
+    this.maxUnits = 10;
     this.isRevealed = false;
     this.isExplored = false;
 
@@ -20,6 +21,31 @@ export class Hex {
     this.isPassable = true;
     this.blocksVision = false;
 
+  }
+
+  addUnit(unit) {
+    if (this.units.length < this.maxUnits) {
+      this.units.push(unit);
+      return true;
+    }
+    return false;
+  }
+
+  removeUnit(unit) {
+    const index = this.units.indexOf(unit);
+    if (index > -1) {
+      this.units.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  hasUnits() {
+    return this.units.length > 0;
+  }
+
+  getUnits() {
+    return this.units;
   }
 
   distanceTo(targetHex) {

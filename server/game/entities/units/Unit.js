@@ -10,10 +10,34 @@ class Unit {
     this.path = [];
 
     this.size = 1;
+
+    this.isMoving = false;
+    this.moveSpeed = 1;
   }
 
   followPath(path) {
     this.path = path;
+    this.isMoving = true;
+  }
+
+  stopMoving() {
+    this.isMoving = false;
+  }
+
+  hasPath() {
+    return this.path.length > 0;
+  }
+
+  move() {
+    if (!this.isMoving) return;
+    if (!this.hasPath()) {
+      this.isMoving = false;
+      return;
+    }
+    const nextHex = this.path.shift();
+    this.q = nextHex.q;
+    this.r = nextHex.r;
+    this.s = nextHex.s;
   }
 
   serialize() {

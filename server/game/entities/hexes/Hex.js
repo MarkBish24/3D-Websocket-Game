@@ -19,6 +19,7 @@ export class Hex {
     // Movement & Vision Constraints
     this.isPassable = true;
     this.blocksVision = false;
+
   }
 
   distanceTo(targetHex) {

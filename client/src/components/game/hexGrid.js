@@ -3,6 +3,7 @@ export class HexGrid {
     this.hexes = new Map();
     this.selectedHex = null;
     this.hoveredHex = null;
+    this.path = [];
   }
 
   addHex(hex) {
@@ -61,5 +62,21 @@ export class HexGrid {
       this.hoveredHex = hex;
       if (this.hoveredHex) this.hoveredHex.toggleHovered(); // Turn new on
     }
+  }
+
+  getPath() {
+    return this.path;
+  }
+
+  setPath(hexArray, mode = "astar") {
+    // Clear old flags
+    for (const hex of this.path) hex.setOnPath(false);
+    this.path = hexArray;
+    for (const hex of this.path) hex.setOnPath(true, mode);
+  }
+
+  clearPath() {
+    for (const hex of this.path) hex.setOnPath(false);
+    this.path = [];
   }
 }

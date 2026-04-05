@@ -15,12 +15,18 @@ export class Hex {
     this.isExplored = serverData.isExplored;
     this.isHovered = false; // True when the mouse points directly here
     this.isSelected = false; // True when user clicks the tile
+
+    this.isOnPath = false;
+    this.pathMode = null; // 'astar' | 'drag'
   }
 
   // Returns the raw RGB literal string based purely on the internal state
   getBaseRGB() {
     if (this.isSelected) return "123, 208, 224"; // Selected highlight color
-    if (this.isHovered) return "255, 255, 255"; // Hover highlight color
+    if (this.isHovered) return "255, 255, 255";  // Hover highlight color
+    // Path colours — checked after selected/hovered so active states always win
+    if (this.isOnPath && this.pathMode === 'drag')  return "80, 180, 255";  // drag: vivid blue
+    if (this.isOnPath && this.pathMode === 'astar') return "100, 200, 255"; // a*: lighter blue
 
     // 2. Temporarily disable Fog of War so we can actually see the map!
     // if (!this.isRevealed) return "47, 47, 47"; // #2f2f2f
@@ -66,6 +72,11 @@ export class Hex {
         Math.abs(this.s - targetHex.s)) /
       2
     );
+  }
+
+  setOnPath(val, mode = null) {
+    this.isOnPath = val;
+    this.pathMode = val ? mode : null;
   }
 
   toggleSelected() {

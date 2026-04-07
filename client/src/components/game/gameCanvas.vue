@@ -81,6 +81,15 @@ const HEX_DIRECTIONS = [
   { q: 0, r: -1, s: 1 },
 ];
 
+const getMyFaction = () => {
+  const currentRoom = gameStore.currentRoom;
+  const userId = JSON.parse(localStorage.getItem("user")).id;
+
+  if (!currentRoom || !currentRoom.players || currentRoom.players.length < 2)
+    return null;
+  return currentRoom.players[0].id === userId ? "red" : "blue";
+};
+
 // Unique string key for a hex — used as Map keys in A*
 const hexKey = (h) => `${h.q},${h.r},${h.s}`;
 
@@ -221,7 +230,17 @@ const handleMouseDown = (e) => {
     rightDragMoved = false;
     liveDragPath = [];
     const start = grid.getHoveredHex();
-    if (start && start.type !== "obstacle") {
+    const myFaction = getMyFaction();
+
+    if (
+      !start ||
+      !start.units ||
+      start.units.length === 0 ||
+      start.units[0].owner !== myFaction
+    )
+      return;
+
+    if (start.type !== "obstacle") {
       liveDragPath.push(start);
       grid.setPath([...liveDragPath], "drag");
     }

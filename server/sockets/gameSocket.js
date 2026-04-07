@@ -81,11 +81,22 @@ gameNamespace.on("connect", (socket) => {
 
     const matchData = getOrCreateGame(roomId);
 
+    // grab the array of players to see who is red vs blue
+    const players = Array.from(matchData.players.values());
+    const myFaction = players[0]?.id === user.id ? "red" : "blue";
+
     const originHex = matchData.getBoardHex(
       `${origin.q},${origin.r},${origin.s}`,
     );
 
     if (originHex && originHex.units.length > 0) {
+      // check if the unit belongs to the player
+      const unitOwner = originHex.units[0].owner;
+      if (unitOwner !== myFaction) {
+        socket.emit("game:error", "You can't move the opponent's units");
+        return;
+      }
+
       originHex.units.forEach((unit) => {
         unit.followPath(path);
       });
@@ -99,10 +110,20 @@ gameNamespace.on("connect", (socket) => {
 
     const matchData = getOrCreateGame(roomId);
 
+    const players = Array.from(matchData.players.values());
+    const myFaction = players[0]?.id === user.id ? "red" : "blue";
+
     const originKey = `${path[0].q},${path[0].r},${path[0].s}`;
     const originHex = matchData.getBoardHex(originKey);
 
     if (originHex && originHex.units.length > 0) {
+      // check if the unit belongs to the player
+      const unitOwner = originHex.units[0].owner;
+      if (unitOwner !== myFaction) {
+        socket.emit("game:error", "You can't move the opponent's units");
+        return;
+      }
+
       originHex.units.forEach((unit) => {
         unit.followPath(path.slice(1));
       });

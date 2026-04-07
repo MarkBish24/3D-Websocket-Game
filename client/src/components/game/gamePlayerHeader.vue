@@ -1,24 +1,24 @@
 <template>
   <v-row class="mb-4">
-    <!-- Player 1 (Creator) -->
+    <!-- Player 1 (Creator) - RED -->
     <v-col cols="6">
       <v-card class="bg-grey-darken-4 text-center pb-2 elevation-3 rounded-lg">
-        <v-card-title class="text-primary font-weight-bold">
+        <v-card-title class="text-error font-weight-bold">
           {{ player1 ? player1.username : "Loading..." }}
         </v-card-title>
-        <v-avatar size="64" class="mb-2 border-primary border-sm">
+        <v-avatar size="64" class="mb-2 border-error border-sm">
           <v-img :src="player1?.picture || 'https://cdn.vuetifyjs.com/images/john.jpg'"></v-img>
         </v-avatar>
       </v-card>
     </v-col>
 
-    <!-- Player 2 (Challenger) -->
+    <!-- Player 2 (Challenger) - BLUE -->
     <v-col cols="6">
       <v-card class="bg-grey-darken-4 text-center pb-2 elevation-3 rounded-lg">
-        <v-card-title class="text-error font-weight-bold">
+        <v-card-title class="text-primary font-weight-bold">
           {{ player2 ? player2.username : "Loading..." }}
         </v-card-title>
-        <v-avatar size="64" class="mb-2 border-error border-sm">
+        <v-avatar size="64" class="mb-2 border-primary border-sm">
           <v-img :src="player2?.picture || 'https://cdn.vuetifyjs.com/images/john.jpg'"></v-img>
         </v-avatar>
       </v-card>

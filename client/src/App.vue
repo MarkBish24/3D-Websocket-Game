@@ -9,25 +9,30 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
-import { connectSocialSocket } from "./plugins/userSocket.js";
-import { connectChatSocket } from "./plugins/chatSocket.js";
-import { connectLobbySocket } from "./plugins/lobbySocket.js";
-import { connectGameSocket } from "./plugins/gameSocket.js";
+import { watch } from "vue";
+import { connectSocialSocket, disconnectSocialSocket } from "./plugins/userSocket.js";
+import { connectChatSocket, disconnectChatSocket } from "./plugins/chatSocket.js";
+import { connectLobbySocket, disconnectLobbySocket } from "./plugins/lobbySocket.js";
+import { connectGameSocket, disconnectGameSocket } from "./plugins/gameSocket.js";
 import { useAuthStore } from "./stores/authStore.js";
 import ToastNotification from "./components/ToastNotification.vue";
 import ChatWindow from "./components/chatWindow.vue";
 
 const authStore = useAuthStore();
 
-onMounted(() => {
-  if (authStore.token) {
-    connectSocialSocket(authStore.token);
-    connectChatSocket(authStore.token);
-    connectLobbySocket(authStore.token);
-    connectGameSocket(authStore.token);
+watch(() => authStore.token, (newToken) => {
+  if (newToken) {
+    connectSocialSocket(newToken);
+    connectChatSocket(newToken);
+    connectLobbySocket(newToken);
+    connectGameSocket(newToken);
+  } else {
+    disconnectSocialSocket();
+    disconnectChatSocket();
+    disconnectLobbySocket();
+    disconnectGameSocket();
   }
-});
+}, { immediate: true });
 </script>
 
 <style>

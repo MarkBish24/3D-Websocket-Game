@@ -1,6 +1,6 @@
 {
   "name": "3d-websocket-game",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This is a websocket game with a tech stack of Vue, Express, Node, and Postgres SQL",
   "main": "index.js",
   "scripts": {

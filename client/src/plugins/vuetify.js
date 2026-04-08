@@ -13,14 +13,16 @@ const customLightTheme = {
     success: "#4CAF50",
     warning: "#FB8C00",
     // ── Game Canvas Colors ───────────────────────
-    gameBackground:   "#E8E8E8",
-    gameHexNormal:    "#D8D8D8",
-    gameHexStroke:    "#B8B8B8",
-    gameHexObstacle:  "#A0A0A0",
-    gameHexRing:      "#C0C0C0",
-    gameUnitShadow:   "#000000",
-    gameCheckpoint:   "#FF6F00", // Vibrant deep orange for light mode
-    gameSelection:    "#0066FF", // Intense blue glow for light mode
+    gameBackground: "#E8E8E8",
+    gameHexNormal: "#D8D8D8",
+    gameHexStroke: "#B8B8B8",
+    gameHexObstacle: "#A0A0A0",
+    gameHexRing: "#C0C0C0",
+    gameUnitShadow: "#000000",
+    gameCheckpoint: "#FF6F00",
+    gameSelection: "#0066FF",
+    gamePlayerRed: "#B00020", // matches error
+    gamePlayerGreen: "#2E7D32",
   },
 };
 
@@ -37,14 +39,16 @@ const customDarkTheme = {
     success: "#4CAF50",
     warning: "#FB8C00",
     // ── Game Canvas Colors ───────────────────────
-    gameBackground:   "#000000",
-    gameHexNormal:    "#383838", // Lighter normal hex
-    gameHexStroke:    "#555555", // Lighter stroke
-    gameHexObstacle:  "#1c1c1c", // Lighter obstacle
-    gameHexRing:      "#3A3A3A",
-    gameUnitShadow:   "#FFFFFF",
-    gameCheckpoint:   "#FFD700", // Vibrant gold for dark mode
-    gameSelection:    "#00FFFF", // Intense neon cyan glow for dark mode
+    gameBackground: "#000000",
+    gameHexNormal: "#383838", // Lighter normal hex
+    gameHexStroke: "#555555", // Lighter stroke
+    gameHexObstacle: "#1c1c1c", // Lighter obstacle
+    gameHexRing: "#3A3A3A",
+    gameUnitShadow: "#FFFFFF",
+    gameCheckpoint: "#FFD700",
+    gameSelection: "#00FFFF",
+    gamePlayerRed: "#FF5252", // Vivid red for dark mode
+    gamePlayerGreen: "#00E676",
   },
 };
 
@@ -61,14 +65,16 @@ const testTheme = {
     success: "#4CAF50",
     warning: "#FB8C00",
     // ── Game Canvas Colors ───────────────────────
-    gameBackground:   "#f0ead8",
-    gameHexNormal:    "#e4dcc8",
-    gameHexStroke:    "#c8bfa8",
-    gameHexObstacle:  "#b0a898",
-    gameHexRing:      "#cec6b0",
-    gameUnitShadow:   "#000000",
-    gameCheckpoint:   "#FF6F00", // Vibrant deep orange 
-    gameSelection:    "#0066FF", // Intense blue glow
+    gameBackground: "#f0ead8",
+    gameHexNormal: "#e4dcc8",
+    gameHexStroke: "#c8bfa8",
+    gameHexObstacle: "#b0a898",
+    gameHexRing: "#cec6b0",
+    gameUnitShadow: "#000000",
+    gameCheckpoint: "#FF6F00",
+    gameSelection: "#0066FF",
+    gamePlayerRed: "#8e2c2c", // matches error
+    gamePlayerGreen: "#388E3C",
   },
 };
 
@@ -85,14 +91,16 @@ const testDarkTheme = {
     success: "#4CAF50",
     warning: "#FB8C00",
     // ── Game Canvas Colors ───────────────────────
-    gameBackground:   "#000000",
-    gameHexNormal:    "#2c3e50", // Lighter normal hex
-    gameHexStroke:    "#4f6d91", // Lighter stroke
-    gameHexObstacle:  "#1c2738", // Lighter obstacle
-    gameHexRing:      "#2a3a50",
-    gameUnitShadow:   "#FFFFFF",
-    gameCheckpoint:   "#FFD700", // Vibrant gold
-    gameSelection:    "#00FFFF", // Intense neon cyan glow
+    gameBackground: "#000000",
+    gameHexNormal: "#2c3e50", // Lighter normal hex
+    gameHexStroke: "#4f6d91", // Lighter stroke
+    gameHexObstacle: "#1c2738", // Lighter obstacle
+    gameHexRing: "#2a3a50",
+    gameUnitShadow: "#FFFFFF",
+    gameCheckpoint: "#FFD700",
+    gameSelection: "#00FFFF",
+    gamePlayerRed: "#FF5252", // Vivid red for dark mode
+    gamePlayerGreen: "#00E676",
   },
 };
 

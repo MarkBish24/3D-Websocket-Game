@@ -46,7 +46,7 @@ export function drawUnitsOnHex(ctx, units, hexPixel, hexSize, time, gameColors) 
 
   const numUnits = units.length;
   const faction = units[0].owner;
-  const unitColor = faction === "red" ? gameColors.redUnit : gameColors.blueUnit;
+  const unitColor = faction === "red" ? gameColors.redUnit : gameColors.greenUnit;
 
   // Use the default icon for now
   const icon = getTintedIcon("Soldier_Aimed_01", unitColor);

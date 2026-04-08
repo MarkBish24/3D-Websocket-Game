@@ -197,13 +197,13 @@ export class HexGrid {
     const p2Core = passables[passables.length - 1];
 
     this.convertAreaToBase(p1Core, "red", 30);
-    this.convertAreaToBase(p2Core, "blue", 30);
+    this.convertAreaToBase(p2Core, "green", 30);
 
     const redGoal = new GoalHex(p1Core.q, p1Core.r, p1Core.s, "red");
-    const blueGoal = new GoalHex(p2Core.q, p2Core.r, p2Core.s, "blue");
+    const greenGoal = new GoalHex(p2Core.q, p2Core.r, p2Core.s, "green");
 
     this.hexes.set(p1Core.key, redGoal);
-    this.hexes.set(p2Core.key, blueGoal);
+    this.hexes.set(p2Core.key, greenGoal);
 
     // 3. Find the geometric center of the map
     if (this.hexes.has("0,0,0") && this.hexes.get("0,0,0").isPassable) {
@@ -218,7 +218,7 @@ export class HexGrid {
     // spawn 10 units on each goal
     for (let i = 0; i < 10; i++) {
       redGoal.addUnit(new Unit(redGoal.q, redGoal.r, redGoal.s, "red"));
-      blueGoal.addUnit(new Unit(blueGoal.q, blueGoal.r, blueGoal.s, "blue"));
+      greenGoal.addUnit(new Unit(greenGoal.q, greenGoal.r, greenGoal.s, "green"));
     }
   }
 

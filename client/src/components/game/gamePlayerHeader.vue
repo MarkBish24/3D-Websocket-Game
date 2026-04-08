@@ -12,13 +12,13 @@
       </v-card>
     </v-col>
 
-    <!-- Player 2 (Challenger) - BLUE -->
+    <!-- Player 2 (Challenger) - GREEN -->
     <v-col cols="6">
       <v-card class="text-center pb-2 elevation-3 rounded-lg" color="surface">
-        <v-card-title class="text-primary font-weight-bold">
+        <v-card-title class="text-success font-weight-bold">
           {{ player2 ? player2.username : "Loading..." }}
         </v-card-title>
-        <v-avatar size="64" class="mb-2 border-primary border-sm">
+        <v-avatar size="64" class="mb-2 border-success border-sm">
           <v-img :src="player2?.picture || 'https://cdn.vuetifyjs.com/images/john.jpg'"></v-img>
         </v-avatar>
       </v-card>

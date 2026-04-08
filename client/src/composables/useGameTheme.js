@@ -46,11 +46,11 @@ export function useGameTheme() {
 
       // ── Special tiles ──────────────────────────────────
       // Red spawn base
-      redBaseFill:   hexToRgba(c.error, 0.45),
-      redBaseStroke: hexToRgba(c.error, 1.0),
-      // Blue spawn base
-      blueBaseFill:   hexToRgba(c.primary, 0.45),
-      blueBaseStroke: hexToRgba(c.primary, 1.0),
+      redBaseFill:   hexToRgba(c.gamePlayerRed, 0.45),
+      redBaseStroke: hexToRgba(c.gamePlayerRed, 1.0),
+      // Blue spawn base (now green in-game)
+      greenBaseFill:   hexToRgba(c.gamePlayerGreen, 0.45),
+      greenBaseStroke: hexToRgba(c.gamePlayerGreen, 1.0),
       // Checkpoint & Goal → vibrant standout color
       goalFill:         hexToRgba(c.gameCheckpoint || c.secondary, 0.5),
       goalStroke:       hexToRgba(c.gameCheckpoint || c.secondary, 1.0),
@@ -76,8 +76,8 @@ export function useGameTheme() {
       markerStroke: c.gameCheckpoint || c.secondary,
 
       // ── Unit tokens ────────────────────────────────────
-      redUnit:  c.error,
-      blueUnit: c.primary,
+      redUnit:   c.gamePlayerRed,
+      greenUnit: c.gamePlayerGreen,
       
       // Shadows (glows in dark mode, drops in light mode)
       unitShadow:      hexToRgba(c.gameUnitShadow, 0.4),

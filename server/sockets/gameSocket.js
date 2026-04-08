@@ -83,7 +83,7 @@ gameNamespace.on("connect", (socket) => {
 
     // grab the array of players to see who is red vs blue
     const players = Array.from(matchData.players.values());
-    const myFaction = players[0]?.id === user.id ? "red" : "blue";
+    const myFaction = players[0]?.id === user.id ? "red" : "green";
 
     const originHex = matchData.getBoardHex(
       `${origin.q},${origin.r},${origin.s}`,
@@ -111,7 +111,7 @@ gameNamespace.on("connect", (socket) => {
     const matchData = getOrCreateGame(roomId);
 
     const players = Array.from(matchData.players.values());
-    const myFaction = players[0]?.id === user.id ? "red" : "blue";
+    const myFaction = players[0]?.id === user.id ? "red" : "green";
 
     const originKey = `${path[0].q},${path[0].r},${path[0].s}`;
     const originHex = matchData.getBoardHex(originKey);

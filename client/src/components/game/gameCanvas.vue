@@ -98,7 +98,7 @@ const getMyFaction = () => {
 
   if (!currentRoom || !currentRoom.players || currentRoom.players.length < 2)
     return null;
-  return currentRoom.players[0].id === userId ? "red" : "blue";
+  return currentRoom.players[0].id === userId ? "red" : "green";
 };
 
 // Unique string key for a hex — used as Map keys in A*

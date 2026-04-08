@@ -30,8 +30,8 @@ export class Hex {
     switch (this.type) {
       case "spawn":
       case "base":
-        if (this.owner === "red")  return gameColors.redBaseFill;
-        if (this.owner === "blue") return gameColors.blueBaseFill;
+        if (this.owner === "red")   return gameColors.redBaseFill;
+        if (this.owner === "green") return gameColors.greenBaseFill;
         return gameColors.hexNormalFill;
       case "goal":
         return gameColors.goalFill;
@@ -56,8 +56,8 @@ export class Hex {
     switch (this.type) {
       case "spawn":
       case "base":
-        if (this.owner === "red")  return gameColors.redBaseStroke;
-        if (this.owner === "blue") return gameColors.blueBaseStroke;
+        if (this.owner === "red")   return gameColors.redBaseStroke;
+        if (this.owner === "green") return gameColors.greenBaseStroke;
         return gameColors.hexNormalStroke;
       case "goal":
         return gameColors.goalStroke;

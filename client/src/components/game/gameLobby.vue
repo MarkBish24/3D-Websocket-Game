@@ -1,5 +1,5 @@
 <template>
-  <v-card class="elevation-4 mt-10 rounded-xl bg-grey-darken-4">
+  <v-card class="elevation-4 mt-10 rounded-xl" color="surface">
     <v-card-title class="text-h4 font-weight-bold text-center py-6 text-primary">
       Game Lobby
     </v-card-title>

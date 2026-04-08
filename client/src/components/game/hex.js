@@ -20,49 +20,56 @@ export class Hex {
     this.pathMode = null; // 'astar' | 'drag'
   }
 
-  // Returns the raw RGB literal string based purely on the internal state
-  getBaseRGB() {
-    if (this.isSelected) return "123, 208, 224"; // Selected highlight color
-    if (this.isHovered) return "255, 255, 255";  // Hover highlight color
-    // Path colours — checked after selected/hovered so active states always win
-    if (this.isOnPath && this.pathMode === 'drag')  return "80, 180, 255";  // drag: vivid blue
-    if (this.isOnPath && this.pathMode === 'astar') return "100, 200, 255"; // a*: lighter blue
+  // Returns exactly what fill color this tile should render as, given the active theme palette
+  getRenderColor(gameColors) {
+    if (this.isHovered)  return gameColors.hoverFill;
 
-    // 2. Temporarily disable Fog of War so we can actually see the map!
-    // if (!this.isRevealed) return "47, 47, 47"; // #2f2f2f
+    if (this.isOnPath && this.pathMode === "drag")  return gameColors.pathDragFill;
+    if (this.isOnPath && this.pathMode === "astar") return gameColors.pathAstarFill;
 
-    // 3. Type-based colors (spawn zones use owner to pick team color)
     switch (this.type) {
       case "spawn":
-        // Owner is set by the server — no need to hard-code which hex is red/blue
-        if (this.owner === "red") return "192, 57, 43"; // #c0392b
-        if (this.owner === "blue") return "41, 128, 185"; // #2980b9
-        return "127, 140, 141"; // #7f8c8d (spawn with no owner yet)
-
-      case "checkpoint":
-        return "255, 215, 0"; // Gold! (Was purple: 142, 68, 173)
+      case "base":
+        if (this.owner === "red")  return gameColors.redBaseFill;
+        if (this.owner === "blue") return gameColors.blueBaseFill;
+        return gameColors.hexNormalFill;
       case "goal":
-        return "243, 156, 18"; // #f39c12 (Orange/Gold)
+        return gameColors.goalFill;
+      case "checkpoint":
+        return gameColors.checkpointFill;
       case "obstacle":
-        return "40, 40, 40"; // Super dark grey/black
-
-      // 4. Explored but ordinary tile
-      case "basic":
-      case "normal":
+        return gameColors.hexObstacleFill;
+      case "ring":
+        return gameColors.hexRingFill;
       default:
-        // By default, if there is no special type, draw it slightly lighter than fog
-        return "74, 74, 74"; // #4a4a4a
+        return gameColors.hexNormalFill;
     }
   }
 
-  // Returns exactly what color this tile should render as based on state
-  getRenderColor() {
-    return `rgba(${this.getBaseRGB()}, 0.5)`; // Semi-transparent glass fill
-  }
+  // Returns exactly what stroke/outline color this tile should render as
+  getStrokeColor(gameColors) {
+    if (this.isHovered)  return gameColors.hoverStroke;
 
-  // Returns exactly what color the outline of this tile should render as
-  getStrokeColor() {
-    return `rgba(${this.getBaseRGB()}, 1.0)`; // Bright solid neon outline
+    if (this.isOnPath && this.pathMode === "drag")  return gameColors.pathDragStroke;
+    if (this.isOnPath && this.pathMode === "astar") return gameColors.pathAstarStroke;
+
+    switch (this.type) {
+      case "spawn":
+      case "base":
+        if (this.owner === "red")  return gameColors.redBaseStroke;
+        if (this.owner === "blue") return gameColors.blueBaseStroke;
+        return gameColors.hexNormalStroke;
+      case "goal":
+        return gameColors.goalStroke;
+      case "checkpoint":
+        return gameColors.checkpointStroke;
+      case "obstacle":
+        return gameColors.hexObstacleStroke;
+      case "ring":
+        return gameColors.hexRingStroke;
+      default:
+        return gameColors.hexNormalStroke;
+    }
   }
 
   distanceTo(targetHex) {

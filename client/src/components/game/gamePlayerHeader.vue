@@ -2,7 +2,7 @@
   <v-row class="mb-4">
     <!-- Player 1 (Creator) - RED -->
     <v-col cols="6">
-      <v-card class="bg-grey-darken-4 text-center pb-2 elevation-3 rounded-lg">
+      <v-card class="text-center pb-2 elevation-3 rounded-lg" color="surface">
         <v-card-title class="text-error font-weight-bold">
           {{ player1 ? player1.username : "Loading..." }}
         </v-card-title>
@@ -14,7 +14,7 @@
 
     <!-- Player 2 (Challenger) - BLUE -->
     <v-col cols="6">
-      <v-card class="bg-grey-darken-4 text-center pb-2 elevation-3 rounded-lg">
+      <v-card class="text-center pb-2 elevation-3 rounded-lg" color="surface">
         <v-card-title class="text-primary font-weight-bold">
           {{ player2 ? player2.username : "Loading..." }}
         </v-card-title>
@@ -27,9 +27,11 @@
 </template>
 
 <script setup>
-import { useLobbyStore } from "../../stores/lobbyStore.js";
 import { ref, onMounted } from "vue";
+import { useLobbyStore } from "../../stores/lobbyStore.js";
+
 const lobbyStore = useLobbyStore();
+
 const player1 = ref(null);
 const player2 = ref(null);
 
@@ -57,7 +59,6 @@ const fetchPlayer = async (userId) => {
 onMounted(async () => {
   const room = lobbyStore.currentRoom;
   if (room && room.players.length >= 2) {
-    // Await the promises so we actually store the user object, not a pending Promise!
     player1.value = await fetchPlayer(room.players[0].userId);
     player2.value = await fetchPlayer(room.players[1].userId);
   }

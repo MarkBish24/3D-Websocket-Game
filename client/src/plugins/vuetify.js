@@ -12,6 +12,12 @@ const customLightTheme = {
     info: "#2196F3",
     success: "#4CAF50",
     warning: "#FB8C00",
+    // ── Game Canvas Colors ───────────────────────
+    gameBackground:   "#E8E8E8",
+    gameHexNormal:    "#D8D8D8",
+    gameHexStroke:    "#B8B8B8",
+    gameHexObstacle:  "#A0A0A0",
+    gameHexRing:      "#C0C0C0",
   },
 };
 
@@ -27,6 +33,12 @@ const customDarkTheme = {
     info: "#2196F3",
     success: "#4CAF50",
     warning: "#FB8C00",
+    // ── Game Canvas Colors ───────────────────────
+    gameBackground:   "#000000",
+    gameHexNormal:    "#2F2F2F",
+    gameHexStroke:    "#4A4A4A",
+    gameHexObstacle:  "#1c1c1c", // Lighter obstacle
+    gameHexRing:      "#3A3A3A",
   },
 };
 
@@ -42,6 +54,12 @@ const testTheme = {
     info: "#2196F3",
     success: "#4CAF50",
     warning: "#FB8C00",
+    // ── Game Canvas Colors ───────────────────────
+    gameBackground:   "#f0ead8",
+    gameHexNormal:    "#e4dcc8",
+    gameHexStroke:    "#c8bfa8",
+    gameHexObstacle:  "#b0a898",
+    gameHexRing:      "#cec6b0",
   },
 };
 
@@ -57,6 +75,12 @@ const testDarkTheme = {
     info: "#2196F3",
     success: "#4CAF50",
     warning: "#FB8C00",
+    // ── Game Canvas Colors ───────────────────────
+    gameBackground:   "#000000",
+    gameHexNormal:    "#1a2535",
+    gameHexStroke:    "#3D546F",
+    gameHexObstacle:  "#1c2738", // Lighter obstacle
+    gameHexRing:      "#2a3a50",
   },
 };
 

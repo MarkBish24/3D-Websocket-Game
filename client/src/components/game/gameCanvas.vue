@@ -15,10 +15,13 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useGameStore } from "../../stores/gameStore.js";
+import { useGameTheme } from "../../composables/useGameTheme.js";
 import { Hex } from "./hex.js";
 import { HexGrid } from "./hexGrid.js";
 import { getGameSocket } from "../../plugins/gameSocket.js";
 import { drawUnitsOnHex } from "./unit.js";
+
+const { gameColors } = useGameTheme();
 
 const gameStore = useGameStore();
 const socket = getGameSocket();
@@ -51,9 +54,17 @@ const DOUBLE_CLICK_MS = 400;
 onMounted(() => {
   gameCanvas.value.width = window.innerWidth / 1.5;
   gameCanvas.value.height = window.innerHeight / 1.5;
-  gameCanvas.value.style.backgroundColor = "#000000";
   ctx = gameCanvas.value.getContext("2d");
   gameLoop();
+
+  // Sync the canvas and container background color with the active Vuetify theme
+  watch(
+    () => gameColors.value.background,
+    (bg) => {
+      if (gameCanvas.value) gameCanvas.value.style.backgroundColor = bg;
+    },
+    { immediate: true },
+  );
 
   // Reactively rebuild the hex map whenever the server sends board data
   watch(
@@ -451,6 +462,8 @@ const gameLoop = () => {
   const selectedHex = grid.getSelectedHex();
   const hoveredHex = grid.getHoveredHex();
 
+  const gc = gameColors.value;
+
   // 1. Draw the base map first (skip selected, hovered, and path hexes)
   for (const hex of grid.getHexes()) {
     if (hex === selectedHex || hex === hoveredHex || hex.isOnPath) continue;
@@ -460,8 +473,8 @@ const gameLoop = () => {
       ctx,
       pixel,
       hexSize - 1,
-      hex.getRenderColor(),
-      hex.getStrokeColor(),
+      hex.getRenderColor(gc),
+      hex.getStrokeColor(gc),
     );
   }
 
@@ -472,35 +485,18 @@ const gameLoop = () => {
     if (ph === selectedHex || ph === hoveredHex) continue;
 
     const pixel = hexToPixel(ph.q, ph.r, hexSize);
-    const progress = pathHexes.length > 1 ? i / (pathHexes.length - 1) : 0; // 0 → 1 along route
-
-    if (ph.pathMode === "astar") {
-      // Very subtle light-blue tint — shows route without overpowering the map
-      const fillA = 0.1 + progress * 0.08; // 0.10 → 0.18
-      const strokeA = 0.25 + progress * 0.2; // 0.25 → 0.45
-      drawHex(
-        ctx,
-        pixel,
-        hexSize - 1,
-        `rgba(100, 200, 255, ${fillA})`,
-        `rgba(100, 200, 255, ${strokeA})`,
-      );
-    } else {
-      // Drag path — brighter step-by-step highlight, intensity builds toward the tip
-      const fillA = 0.2 + progress * 0.15; // 0.20 → 0.35
-      const strokeA = 0.5 + progress * 0.35; // 0.50 → 0.85
-      drawHex(
-        ctx,
-        pixel,
-        hexSize - 1,
-        `rgba(80, 180, 255, ${fillA})`,
-        `rgba(80, 180, 255, ${strokeA})`,
-      );
-    }
+    drawHex(
+      ctx,
+      pixel,
+      hexSize - 1,
+      ph.getRenderColor(gc),
+      ph.getStrokeColor(gc),
+    );
   }
 
-  // 1.75 — Destination Marker and Drag tip
+  // 1.75 — Destination Marker and Drag tip (use theme secondary = goal/checkpoint color)
   const markerPulse = 0.6 + Math.sin(time / 300) * 0.4; // 0.2 → 1.0
+  const markerHex = gc.markerFill; // e.g. '#e0b455' in dark theme
 
   if (destinationHex) {
     const pixel = hexToPixel(destinationHex.q, destinationHex.r, hexSize);
@@ -508,15 +504,15 @@ const gameLoop = () => {
       ctx,
       pixel,
       hexSize - 1,
-      `rgba(255, 210, 0, ${markerPulse * 0.25})`, // yellow fill
-      `rgba(255, 230, 0, ${markerPulse})`, // yellow stroke
+      gc.toRgba(markerHex, markerPulse * 0.25),
+      gc.toRgba(markerHex, markerPulse),
     );
     drawHex(
       ctx,
       pixel,
       hexSize * 0.4,
-      "rgba(255, 220, 50, 0)",
-      `rgba(255, 220, 50, ${markerPulse * 0.9})`, // inner ring
+      gc.toRgba(markerHex, 0),
+      gc.toRgba(markerHex, markerPulse * 0.9),
     );
   }
 
@@ -528,15 +524,15 @@ const gameLoop = () => {
         ctx,
         pixel,
         hexSize - 1,
-        `rgba(255, 140, 0, ${markerPulse * 0.25})`,
-        `rgba(255, 180, 0, ${markerPulse})`,
+        gc.toRgba(markerHex, markerPulse * 0.2),
+        gc.toRgba(markerHex, markerPulse * 0.8),
       );
       drawHex(
         ctx,
         pixel,
         hexSize * 0.4,
-        "rgba(255, 200, 50, 0)",
-        `rgba(255, 200, 50, ${markerPulse * 0.9})`,
+        gc.toRgba(markerHex, 0),
+        gc.toRgba(markerHex, markerPulse * 0.85),
       );
     }
   }
@@ -548,7 +544,7 @@ const gameLoop = () => {
       hexSize -
       1 +
       Math.sin(time / (150 * HEX_GRADIENT_SPEED)) * HEX_GRADIENT_AMPLITUDE; // slight pulsing scale
-    drawHex(ctx, pixel, renderSize, hoveredHex.getRenderColor());
+    drawHex(ctx, pixel, renderSize, hoveredHex.getRenderColor(gc), hoveredHex.getStrokeColor(gc));
   }
 
   // 3. Draw Selected Hex Last (renders on top of everything)
@@ -562,8 +558,8 @@ const gameLoop = () => {
       ctx,
       pixel,
       renderSize,
-      selectedHex.getRenderColor(),
-      selectedHex.getStrokeColor(),
+      selectedHex.getRenderColor(gc),
+      selectedHex.getStrokeColor(gc),
     );
 
     // The physical scale bounces on Math.sin(time / 200).
@@ -576,21 +572,18 @@ const gameLoop = () => {
     // Draw an expanding hexagonal wave! HTML5 Canvas doesn't have "hex gradients"
     // So we mathematically draw 3 layers of glowing hex borders to fake a thick wave band
     for (let i = 0; i < 3; i++) {
-      // Stagger the rings slightly. Wrapping negative values to +1.0 ensures
-      // the fading trail from the previous wave completely exits the edge instead of abruptly vanishing
       let ringProgress = rhythmProgress - i * 0.15;
       if (ringProgress < 0) ringProgress += 1.0;
 
       const ringSize = renderSize * ringProgress;
 
-      // Opacity naturally flows from bright in the center to invisible flat at the edge
       const edgeFade = Math.max(0, 1 - ringProgress);
-      // The master ring (i=0) is brightest, trailing rings are heavily dimmed
       const ringGlowAlpha = (0.9 - i * 0.4) * edgeFade;
 
       if (ringGlowAlpha > 0 && ringSize > 0) {
-        const strokeGlow = `rgba(150, 240, 255, ${ringGlowAlpha})`;
-        const fillGlow = `rgba(150, 240, 255, ${ringGlowAlpha * 0.15})`; // slight interior glow
+        // Selection glow uses theme primary color
+        const strokeGlow = gc.toRgba(gc.selectionGlow, ringGlowAlpha);
+        const fillGlow   = gc.toRgba(gc.selectionGlow, ringGlowAlpha * 0.15);
 
         drawHex(ctx, pixel, ringSize, fillGlow, strokeGlow);
       }
@@ -601,7 +594,7 @@ const gameLoop = () => {
   for (const hex of grid.getHexes()) {
     if (hex.units && hex.units.length > 0) {
       const pixel = hexToPixel(hex.q, hex.r, hexSize);
-      drawUnitsOnHex(ctx, hex.units, pixel, hexSize, time);
+      drawUnitsOnHex(ctx, hex.units, pixel, hexSize, time, gc);
     }
   }
 
@@ -615,9 +608,8 @@ const gameLoop = () => {
 .game-container {
   width: 100vw;
   height: calc(100vh - 64px);
-
   overflow: hidden;
-  background-color: #0c111d;
+  /* Background is set reactively via JS watch on gameColors.background */
 }
 
 canvas {

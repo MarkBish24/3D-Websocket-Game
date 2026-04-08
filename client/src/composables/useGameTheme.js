@@ -51,18 +51,18 @@ export function useGameTheme() {
       // Blue spawn base
       blueBaseFill:   hexToRgba(c.primary, 0.45),
       blueBaseStroke: hexToRgba(c.primary, 1.0),
-      // Checkpoint & Goal → secondary (gold)
-      goalFill:         hexToRgba(c.secondary, 0.45),
-      goalStroke:       hexToRgba(c.secondary, 1.0),
-      checkpointFill:   hexToRgba(c.secondary, 0.35),
-      checkpointStroke: hexToRgba(c.secondary, 0.85),
+      // Checkpoint & Goal → vibrant standout color
+      goalFill:         hexToRgba(c.gameCheckpoint || c.secondary, 0.5),
+      goalStroke:       hexToRgba(c.gameCheckpoint || c.secondary, 1.0),
+      checkpointFill:   hexToRgba(c.gameCheckpoint || c.secondary, 0.45),
+      checkpointStroke: hexToRgba(c.gameCheckpoint || c.secondary, 0.95),
 
       // ── Hover / selection ──────────────────────────────
-      hoverFill:   isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)",
-      hoverStroke: isDark ? "rgba(255,255,255,0.9)"  : "rgba(0,0,0,0.75)",
+      hoverFill:   isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.25)",
+      hoverStroke: isDark ? "rgba(255,255,255,1.0)"  : "rgba(0,0,0,1.0)",
 
-      // Selection glow rings (sourced from primary)
-      selectionGlow: c.primary,
+      // Selection glow rings
+      selectionGlow: c.gameSelection || c.primary,
 
       // ── Path overlay ───────────────────────────────────
       // Both A* and drag paths tinted from primary
@@ -71,9 +71,9 @@ export function useGameTheme() {
       pathDragFill:    hexToRgba(c.primary, 0.25),
       pathDragStroke:  hexToRgba(c.primary, 0.75),
 
-      // Destination / drag-tip markers → secondary (gold/teal)
-      markerFill:   c.secondary,
-      markerStroke: c.secondary,
+      // Destination / drag-tip markers → vibrant standout color
+      markerFill:   c.gameCheckpoint || c.secondary,
+      markerStroke: c.gameCheckpoint || c.secondary,
 
       // ── Unit tokens ────────────────────────────────────
       redUnit:  c.error,

@@ -544,7 +544,13 @@ const gameLoop = () => {
       hexSize -
       1 +
       Math.sin(time / (150 * HEX_GRADIENT_SPEED)) * HEX_GRADIENT_AMPLITUDE; // slight pulsing scale
-    drawHex(ctx, pixel, renderSize, hoveredHex.getRenderColor(gc), hoveredHex.getStrokeColor(gc));
+    drawHex(
+      ctx,
+      pixel,
+      renderSize,
+      hoveredHex.getRenderColor(gc),
+      hoveredHex.getStrokeColor(gc),
+    );
   }
 
   // 3. Draw Selected Hex Last (renders on top of everything)
@@ -583,7 +589,7 @@ const gameLoop = () => {
       if (ringGlowAlpha > 0 && ringSize > 0) {
         // Selection glow uses theme primary color
         const strokeGlow = gc.toRgba(gc.selectionGlow, ringGlowAlpha);
-        const fillGlow   = gc.toRgba(gc.selectionGlow, ringGlowAlpha * 0.15);
+        const fillGlow = gc.toRgba(gc.selectionGlow, ringGlowAlpha * 0.65);
 
         drawHex(ctx, pixel, ringSize, fillGlow, strokeGlow);
       }

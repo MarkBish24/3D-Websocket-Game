@@ -58,6 +58,10 @@ export function drawUnitsOnHex(ctx, units, hexPixel, hexSize, time, gameColors) 
   const iconSize = hexSize * 1.1; // Make it fill the hex nicely
 
   if (icon) {
+    ctx.shadowColor = gameColors.unitShadow;
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 3;
+
     // Draw the tinted SVG icon
     ctx.drawImage(
       icon,
@@ -66,6 +70,10 @@ export function drawUnitsOnHex(ctx, units, hexPixel, hexSize, time, gameColors) 
       iconSize,
       iconSize,
     );
+
+    // Reset shadow
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
   } else {
     // Fallback while loading
     ctx.beginPath();

@@ -78,6 +78,10 @@ export function useGameTheme() {
       // ── Unit tokens ────────────────────────────────────
       redUnit:  c.error,
       blueUnit: c.primary,
+      
+      // Shadows (glows in dark mode, drops in light mode)
+      unitShadow:      hexToRgba(c.gameUnitShadow, 0.4),
+      unitShadowText:  hexToRgba(c.gameUnitShadow, 0.8),
 
       // ── Helpers ────────────────────────────────────────
       isDark,

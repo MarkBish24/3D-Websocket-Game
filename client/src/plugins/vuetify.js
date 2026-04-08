@@ -18,6 +18,7 @@ const customLightTheme = {
     gameHexStroke:    "#B8B8B8",
     gameHexObstacle:  "#A0A0A0",
     gameHexRing:      "#C0C0C0",
+    gameUnitShadow:   "#000000",
   },
 };
 
@@ -39,6 +40,7 @@ const customDarkTheme = {
     gameHexStroke:    "#4A4A4A",
     gameHexObstacle:  "#1c1c1c", // Lighter obstacle
     gameHexRing:      "#3A3A3A",
+    gameUnitShadow:   "#FFFFFF",
   },
 };
 
@@ -60,6 +62,7 @@ const testTheme = {
     gameHexStroke:    "#c8bfa8",
     gameHexObstacle:  "#b0a898",
     gameHexRing:      "#cec6b0",
+    gameUnitShadow:   "#000000",
   },
 };
 
@@ -81,6 +84,7 @@ const testDarkTheme = {
     gameHexStroke:    "#3D546F",
     gameHexObstacle:  "#1c2738", // Lighter obstacle
     gameHexRing:      "#2a3a50",
+    gameUnitShadow:   "#FFFFFF",
   },
 };
 

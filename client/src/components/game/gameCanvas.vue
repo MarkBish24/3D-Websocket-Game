@@ -435,6 +435,18 @@ const handleWheel = (e) => {
 const loadMap = () => {
   const boardData = gameStore.currentRoom?.board?.hexes ?? [];
 
+  // Save current units' visual positions to enable smooth animation
+  const oldUnitPositions = new Map();
+  for (const hex of grid.getHexes()) {
+    for (const unit of hex.units) {
+      oldUnitPositions.set(unit.owner, {
+        visualQ: unit.visualQ,
+        visualR: unit.visualR,
+        visualS: unit.visualS,
+      });
+    }
+  }
+
   grid.hexes.clear();
   grid.selectedHex = null;
   grid.hoveredHex = null;
@@ -443,7 +455,21 @@ const loadMap = () => {
     const hex = new Hex(hexData);
     // Wrap any server-side unit plain objects into proper Unit class instances
     if (hexData.units && hexData.units.length > 0) {
-      hex.units = hexData.units.map((u) => new Unit(u));
+      hex.units = hexData.units.map((u) => {
+        const unit = new Unit(u);
+        // If this owner had a unit before, animate from its old visual position
+        if (oldUnitPositions.has(u.owner)) {
+          const oldPos = oldUnitPositions.get(u.owner);
+          unit.visualQ = oldPos.visualQ;
+          unit.visualR = oldPos.visualR;
+          unit.visualS = oldPos.visualS;
+          unit.prevQ = oldPos.visualQ;
+          unit.prevR = oldPos.visualR;
+          unit.prevS = oldPos.visualS;
+          unit.lerpProgress = 0.0;
+        }
+        return unit;
+      });
     }
     grid.addHex(hex);
   });

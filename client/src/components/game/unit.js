@@ -22,12 +22,28 @@ class Unit {
 
   update(delta) {
     if (this.lerpProgress < 1.0) {
-      this.lerpProgress = Math.min(1.0, this.lerpProgress + delta / 500);
+      const distance = this.hexDist(
+        { q: this.prevQ, r: this.prevR, s: this.prevS },
+        { q: this.q, r: this.r, s: this.s },
+      );
+      const speed = 2.0; // hexes per second
+      if (distance > 0) {
+        const deltaProgress = ((delta / 1000) * speed) / distance;
+        this.lerpProgress = Math.min(1.0, this.lerpProgress + deltaProgress);
+      } else {
+        this.lerpProgress = 1.0;
+      }
       const t = this.smoothstep(this.lerpProgress);
       this.visualQ = this.prevQ + (this.q - this.prevQ) * t;
       this.visualR = this.prevR + (this.r - this.prevR) * t;
       this.visualS = this.prevS + (this.s - this.prevS) * t;
     }
+  }
+
+  hexDist(a, b) {
+    return (
+      (Math.abs(a.q - b.q) + Math.abs(a.r - b.r) + Math.abs(a.s - b.s)) / 2
+    );
   }
 
   smoothstep(t) {

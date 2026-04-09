@@ -13,20 +13,28 @@
 </template>
 
 <script setup>
+// ========================================
+// IMPORTS
+// ========================================
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useGameStore } from "../../stores/gameStore.js";
 import { useGameTheme } from "../../composables/useGameTheme.js";
 import { Hex } from "./hex.js";
 import { HexGrid } from "./hexGrid.js";
 import { getGameSocket } from "../../plugins/gameSocket.js";
-import { drawUnitsOnHex } from "./unit.js";
+import { Unit } from "./unit.js";
 
+// ========================================
+// REACTIVE REFERENCES AND STORES
+// ========================================
 const { gameColors } = useGameTheme();
-
 const gameStore = useGameStore();
 const socket = getGameSocket();
-
 const gameCanvas = ref(null);
+
+// ========================================
+// GAME STATE VARIABLES
+// ========================================
 let ctx = null;
 let animationFrameId = null;
 const grid = new HexGrid();
@@ -37,20 +45,30 @@ let camera = {
 };
 let isDragging = false;
 let lastMousePos = { x: 0, y: 0 };
-
 let isRightDragging = false;
 let rightDragMoved = false;
 let liveDragPath = [];
-
-// Marker for the destination hex (yellow) in a double-click path
 let destinationHex = null;
 
-// Double right-click detection — measured between mousedown events (most accurate)
+// ========================================
+// DOUBLE-CLICK DETECTION VARIABLES
+// ========================================
 let lastRightDownTime = 0;
 let isRightDoubleClick = false;
-let rightClickFirstHex = null; // hex saved at mousedown #1 — used as A* origin on double-click
-const DOUBLE_CLICK_MS = 400;
+let rightClickFirstHex = null;
 
+// ========================================
+// CONSTANTS
+// ========================================
+const DOUBLE_CLICK_MS = 400;
+const TICK_DURATION = 500; // ms
+const hexSize = 35; // pixel radius of each hexagon
+const HEX_GRADIENT_SPEED = 1.5;
+const HEX_GRADIENT_AMPLITUDE = 1.2;
+
+// ========================================
+// LIFECYCLE HOOKS
+// ========================================
 onMounted(() => {
   gameCanvas.value.width = window.innerWidth / 1.5;
   gameCanvas.value.height = window.innerHeight / 1.5;
@@ -80,9 +98,11 @@ onUnmounted(() => {
   cancelAnimationFrame(animationFrameId);
 });
 
-let dragHasMoved = false;
+// ========================================
+// UTILITY FUNCTIONS
+// ========================================
 
-// ── Pathfinding helpers (module-scope so they aren't recreated every frame) ────
+// Pathfinding helpers
 const HEX_DIRECTIONS = [
   { q: 1, r: -1, s: 0 },
   { q: 1, r: 0, s: -1 },
@@ -167,6 +187,46 @@ function findNearestCheckpoint(fromHex) {
   }
   return nearest;
 }
+
+// Hex coordinate conversions
+// 1. convert math coordinates (q, r) to physical screen pixels (x, y)
+function hexToPixel(q, r, size = hexSize) {
+  const x = size * Math.sqrt(3) * (q + r / 2);
+  const y = size * ((3 / 2) * r);
+  return { x, y };
+}
+
+function pixelToHex(x, y, size = hexSize) {
+  // mathematically, the 1/3 and 2/3 must be divided by the size explicitly!
+  const q = ((Math.sqrt(3) / 3) * x - (1 / 3) * y) / size;
+  const r = ((2 / 3) * y) / size;
+  const s = -q - r;
+  return { q, r, s };
+}
+
+const cubeRound = (frac) => {
+  let q = Math.round(frac.q);
+  let r = Math.round(frac.r);
+  let s = Math.round(frac.s);
+
+  const qDiff = Math.abs(q - frac.q);
+  const rDiff = Math.abs(r - frac.r);
+  const sDiff = Math.abs(s - frac.s);
+
+  if (qDiff > rDiff && qDiff > sDiff) {
+    q = -r - s;
+  } else if (rDiff > sDiff) {
+    r = -q - s;
+  } else {
+    s = -q - r;
+  }
+  return { q, r, s };
+};
+
+// ========================================
+// EVENT HANDLERS
+// ========================================
+let dragHasMoved = false;
 
 const handleMouseMove = (e) => {
   // ── Left-drag: pan the camera ───────────────────────────────────
@@ -368,44 +428,10 @@ const handleWheel = (e) => {
   camera.zoom = newZoom;
 };
 
-// Game State
-const hexSize = 35; // pixel radius of each hexagon
-
-// 1. convert math coordinates (q, r) to physical screen pixels (x, y)
-function hexToPixel(q, r, size = hexSize) {
-  const x = size * Math.sqrt(3) * (q + r / 2);
-  const y = size * ((3 / 2) * r);
-  return { x, y };
-}
-
-function pixelToHex(x, y, size = hexSize) {
-  // mathematically, the 1/3 and 2/3 must be divided by the size explicitly!
-  const q = ((Math.sqrt(3) / 3) * x - (1 / 3) * y) / size;
-  const r = ((2 / 3) * y) / size;
-  const s = -q - r;
-  return { q, r, s };
-}
-
-const cubeRound = (frac) => {
-  let q = Math.round(frac.q);
-  let r = Math.round(frac.r);
-  let s = Math.round(frac.s);
-
-  const qDiff = Math.abs(q - frac.q);
-  const rDiff = Math.abs(r - frac.r);
-  const sDiff = Math.abs(s - frac.s);
-
-  if (qDiff > rDiff && qDiff > sDiff) {
-    q = -r - s;
-  } else if (rDiff > sDiff) {
-    r = -q - s;
-  } else {
-    s = -q - r;
-  }
-  return { q, r, s };
-};
-
-// 2. generate a perfectly smmetrical grid by looping cube contraints
+// ========================================
+// MAP LOADING
+// ========================================
+// 2. generate a perfectly symmetrical grid by looping cube constraints
 const loadMap = () => {
   const boardData = gameStore.currentRoom?.board?.hexes ?? [];
 
@@ -414,10 +440,18 @@ const loadMap = () => {
   grid.hoveredHex = null;
 
   boardData.forEach((hexData) => {
-    grid.addHex(new Hex(hexData));
+    const hex = new Hex(hexData);
+    // Wrap any server-side unit plain objects into proper Unit class instances
+    if (hexData.units && hexData.units.length > 0) {
+      hex.units = hexData.units.map((u) => new Unit(u));
+    }
+    grid.addHex(hex);
   });
 };
 
+// ========================================
+// DRAWING FUNCTIONS
+// ========================================
 // 3. physically draw 6 lines to form a hexagon
 const drawHex = (
   ctx,
@@ -443,12 +477,26 @@ const drawHex = (
   ctx.stroke();
 };
 
-const HEX_GRADIENT_SPEED = 1.5;
-const HEX_GRADIENT_AMPLITUDE = 1.2;
+// ========================================
+// GAME LOOP
+// ========================================
+let lastRenderTime = performance.now();
 
 const gameLoop = () => {
   if (!ctx || !gameCanvas.value) return;
   ctx.clearRect(0, 0, gameCanvas.value.width, gameCanvas.value.height);
+
+  const now = performance.now();
+  const delta = now - lastRenderTime;
+  lastRenderTime = now;
+
+  for (const hex of grid.getHexes()) {
+    if (hex.units && hex.units.length > 0) {
+      for (const unit of hex.units) {
+        unit.update(delta);
+      }
+    }
+  }
 
   ctx.save();
   ctx.translate(
@@ -599,8 +647,9 @@ const gameLoop = () => {
   // 4. Draw Units
   for (const hex of grid.getHexes()) {
     if (hex.units && hex.units.length > 0) {
-      const pixel = hexToPixel(hex.q, hex.r, hexSize);
-      drawUnitsOnHex(ctx, hex.units, pixel, hexSize, time, gc);
+      const unit = hex.units[0];
+      const pixel = hexToPixel(unit.visualQ, unit.visualR, hexSize);
+      Unit.drawOnHex(ctx, hex.units, pixel, hexSize, time, gc);
     }
   }
 
